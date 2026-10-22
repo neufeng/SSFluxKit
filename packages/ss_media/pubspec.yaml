@@ -1,0 +1,26 @@
+name: ss_media
+description: SSFluxKit media — audio/video player abstraction.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.5.0
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  just_audio: ^0.9.46
+  dio: ^5.8.0
+  flutter_riverpod: ^2.6.1
+  ss_core:
+    path: ../ss_core
+  ss_network:
+    path: ../ss_network
+  video_player: ^2.9.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0

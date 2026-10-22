@@ -1,0 +1,4 @@
+{
+  "name": "SSFluxKit",
+  "install": "export PATH=\"$HOME/flutter/bin:$HOME/.pub-cache/bin:$PATH\" && (test -d \"$HOME/flutter\" || git clone --depth 1 -b stable https://github.com/flutter/flutter.git \"$HOME/flutter\") && flutter precache --linux && dart pub global activate melos && melos bootstrap"
+}
