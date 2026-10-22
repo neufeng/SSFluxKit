@@ -1,0 +1,21 @@
+name: ss_ui
+description: SSFluxKit shared UI widgets.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.5.0
+
+resolution: workspace
+
+dependencies:
+  cached_network_image: ^3.4.1
+  flutter:
+    sdk: flutter
+  ss_core:
+    path: ../ss_core
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0

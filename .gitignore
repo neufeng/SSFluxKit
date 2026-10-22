@@ -1,6 +1,11 @@
+# IDE
+.idea/
+*.iml
+
 # Miscellaneous
 *.class
 *.lock
+!pubspec.lock
 *.log
 *.pyc
 *.swp
