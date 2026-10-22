@@ -1,3 +1,5 @@
+part 'ss_api_error.dart';
+
 /// Typed application / network errors for SSFluxKit.
 sealed class SSAppError implements Exception {
   const SSAppError(this.message, {this.cause});

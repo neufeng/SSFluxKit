@@ -1,16 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:ss_core/ss_core.dart';
 
-import '../interceptors/ss_auth_interceptor.dart';
-import '../interceptors/ss_logging_interceptor.dart';
-import '../interceptors/ss_retry_interceptor.dart';
+import '../errors/ss_api_error_mapper.dart';
 
-/// Configurable Dio-based HTTP client with SS interceptors.
+/// Configurable Dio-based HTTP client.
 class SSHttpClient {
   SSHttpClient({
     required String baseUrl,
     Dio? dio,
-    String? Function()? authTokenProvider,
     bool enableLogging = true,
     int maxRetries = 2,
   }) : _dio = dio ??
@@ -21,13 +18,9 @@ class SSHttpClient {
                 receiveTimeout: const Duration(seconds: 30),
                 headers: {'Accept': 'application/json'},
               ),
-            ) {
-    _dio.interceptors.addAll([
-      SSAuthInterceptor(tokenProvider: authTokenProvider),
-      if (enableLogging) SSLoggingInterceptor(),
-      SSRetryInterceptor(dio: _dio, maxRetries: maxRetries),
-    ]);
-  }
+            );
+
+  SSHttpClient.fromDio(this._dio);
 
   final Dio _dio;
 
@@ -50,7 +43,7 @@ class SSHttpClient {
       return SSSuccess(data as T);
     } on DioException catch (e, st) {
       SSLogger.e('GET $path failed', e, st);
-      return SSFailure(_mapDioError(e));
+      return SSFailure(SSApiErrorMapper.fromDioException(e));
     } catch (e, st) {
       SSLogger.e('GET $path failed', e, st);
       return SSFailure(SSUnknownError(e.toString(), e));
@@ -71,33 +64,35 @@ class SSHttpClient {
       return SSSuccess(body as T);
     } on DioException catch (e, st) {
       SSLogger.e('POST $path failed', e, st);
-      return SSFailure(_mapDioError(e));
+      return SSFailure(SSApiErrorMapper.fromDioException(e));
     } catch (e, st) {
       SSLogger.e('POST $path failed', e, st);
       return SSFailure(SSUnknownError(e.toString(), e));
     }
   }
 
-  SSAppError _mapDioError(DioException e) {
-    final status = e.response?.statusCode;
-    if (status == 401 || status == 403) {
-      return SSUnauthorizedError(e.message ?? '未授权');
+  Future<SSResult<T>> putBytes<T>(
+    String url,
+    List<int> bytes, {
+    required String contentType,
+    T Function(dynamic json)? parser,
+  }) async {
+    try {
+      final response = await _dio.put<dynamic>(
+        url,
+        data: bytes,
+        options: Options(
+          headers: {'Content-Type': contentType},
+          extra: {'ss_auth_retry': true},
+        ),
+      );
+      if (parser != null) {
+        return SSSuccess(parser(response.data));
+      }
+      return SSSuccess(response.data as T);
+    } on DioException catch (e, st) {
+      SSLogger.e('PUT upload failed', e, st);
+      return SSFailure(SSApiErrorMapper.fromDioException(e));
     }
-    if (status == 404) {
-      return SSNotFoundError();
-    }
-    if (e.type == DioExceptionType.connectionTimeout ||
-        e.type == DioExceptionType.receiveTimeout ||
-        e.type == DioExceptionType.sendTimeout) {
-      return SSNetworkError('请求超时', cause: e, statusCode: status);
-    }
-    if (e.type == DioExceptionType.connectionError) {
-      return SSNetworkError('网络不可用', cause: e, statusCode: status);
-    }
-    return SSNetworkError(
-      e.message ?? '网络请求失败',
-      cause: e,
-      statusCode: status,
-    );
   }
 }

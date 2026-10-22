@@ -8,7 +8,7 @@
 | --- | --- |
 | `apps/ss_fluxkit_demo` | Demo 宿主应用（go_router + Riverpod） |
 | `packages/ss_core` | 环境、错误、Result、日志 |
-| `packages/ss_network` | Dio 客户端、拦截器、分页模型 |
+| `packages/ss_network` | Dio 客户端、鉴权/刷新拦截器、App Auth API、分页模型 |
 | `packages/ss_ui` | 骨架屏、空态/错态、网络图片 |
 | `packages/ss_feed` | Feed 模型、Repository、列表/详情 UI |
 | `packages/ss_media` | 音视频抽象与 Demo 播放器 |
@@ -118,16 +118,25 @@ flutter run -d macos     # 示例：指定 macOS 桌面
 
 Demo 流程：首页 → Feed（下拉刷新、加载更多）→ 详情（大图）→ Media（示例音/视频 URL）。
 
-### 4. 配置 API Base URL（可选）
+### 4. 编译参数（Base URL / Mock）
 
-默认使用 [JSONPlaceholder](https://jsonplaceholder.typicode.com)（公开示例，无 API Key）。覆盖方式：
+| 参数 | 说明 |
+| --- | --- |
+| `SS_API_BASE_URL` | 后端 **App API 根路径**（含 `/api/v1`，无尾斜杠）。未设置时：Web/iOS 模拟器/桌面默认 `http://localhost:8080/api/v1`，Android 模拟器默认 `http://10.0.2.2:8080/api/v1` |
+| `SS_USE_MOCK` | `true` 时使用本地 Mock Feed/Media，**跳过登录**；`false`（默认）对接 [SSFluxServer](https://github.com/neufeng/SSFluxServer) |
+| `SS_DEMO_USER_EMAIL` / `SS_DEMO_USER_PASSWORD` | 登录页预填（默认与服务器 seed 一致：`demo@ssflux.local` / `DemoUser123!`） |
 
 ```bash
 cd apps/ss_fluxkit_demo
-flutter run --dart-define=SS_API_BASE_URL=https://your-api.example.com
-```
+# 对接本机 SSFluxServer（真实 API）
+flutter run --dart-define=SS_USE_MOCK=false
 
-Feed 请求失败时会**自动降级为本地 Mock**，便于无网或 API 不可达时仍演示 UI。
+# 无后端时纯 UI 演示
+flutter run --dart-define=SS_USE_MOCK=true
+
+# 真机 / 自定义地址
+flutter run --dart-define=SS_API_BASE_URL=http://192.168.1.10:8080/api/v1
+```
 
 ### 5. 常用命令
 
@@ -151,7 +160,7 @@ flutter analyze
 
 cd apps/ss_fluxkit_demo
 flutter test
-flutter run --dart-define=SS_API_BASE_URL=https://jsonplaceholder.typicode.com
+flutter run --dart-define=SS_USE_MOCK=false
 ```
 
 Melos 8 的脚本定义在根目录 **`pubspec.yaml`** 的 `melos:` 段（非独立 `melos.yaml`）。
@@ -170,13 +179,78 @@ Melos 8 的脚本定义在根目录 **`pubspec.yaml`** 的 `melos:` 段（非独
 
 ---
 
+## 对接真实后端（SSFluxServer 联调）
+
+后端仓库：[neufeng/SSFluxServer](https://github.com/neufeng/SSFluxServer) 分支 `cursor/ssfluxserver-mvp-23e6`，契约见 `api/openapi.yaml`。
+
+### 1. 启动后端
+
+```bash
+git clone -b cursor/ssfluxserver-mvp-23e6 https://github.com/neufeng/SSFluxServer.git
+cd SSFluxServer
+cp .env.example .env
+docker compose up --build
+# API: http://localhost:8080  （App 路径前缀 /api/v1）
+```
+
+种子 App 用户（`.env.example`）：`demo@ssflux.local` / `DemoUser123!`  
+管理台（禁用用户联调）：`admin@ssflux.local` / `DemoAdmin123!`
+
+### 2. 启动 Flutter Demo（真实 API）
+
+```bash
+cd SSFluxKit/apps/ss_fluxkit_demo
+flutter run -d chrome \
+  --dart-define=SS_USE_MOCK=false \
+  --dart-define=SS_API_BASE_URL=http://localhost:8080/api/v1
+```
+
+流程：登录 → Feed 游标分页 → 详情 → Media 页可 **presign 上传 PNG**（需登录）。
+
+### 3. Web / CORS
+
+浏览器调试时，请将 Flutter Web 来源（如 `http://localhost:8081`）加入服务端 `CORS_ALLOWED_ORIGINS`（见 SSFluxServer `.env.example`）。
+
+### 4. 自动化联调测试
+
+在 SSFluxServer 已启动的前提下：
+
+```bash
+cd packages/ss_network
+SS_RUN_INTEGRATION=true \
+SS_API_BASE_URL=http://localhost:8080/api/v1 \
+flutter test test/ss_real_api_integration_test.dart
+```
+
+覆盖：App 登录、Feed 分页与详情、Refresh Token 轮换、Admin 禁用用户后 `ACCOUNT_DISABLED`、测试结束重新启用用户。
+
+### 5. 客户端实现要点
+
+| 模块 | 能力 |
+| --- | --- |
+| `ss_network` | `SSAuthApi`（login/refresh/logout/me）、`SSTokenRefreshInterceptor` 单飞刷新、`SSApiError` / `SSAccountDisabledError`、`SSTokenStorage`（secure + Web SharedPreferences 回退） |
+| `ss_feed` | `GET /feed` 游标分页、`GET /feed/{id}` 详情 |
+| `ss_media` | `POST /media/upload-url` → PUT presigned URL → `POST /media/{id}/confirm` |
+
+### 6. Web 联调截图（本仓库）
+
+| 文件 | 说明 |
+| --- | --- |
+| `docs/screenshots/real-api-web-login.png` | Web 登录页（`SS_USE_MOCK=false`，标签：**Web**） |
+| `docs/screenshots/real-api-web-home-mock.png` | Web 首页 Mock 模式（**Web**） |
+
+> 完整「登录后 Feed + 上传」截图需本地同时运行 SSFluxServer 与 Web Demo。
+
+---
+
 ## Demo 功能
 
-1. **首页** → Feed 列表（下拉刷新、滚动加载更多、空/错/加载态）
-2. **Feed 详情** → 大图 + 正文（`cached_network_image`）
-3. **Media** → 公开示例 MP3 / MP4（`just_audio` + `video_player`）；离开路由时 `dispose` 停止播放
+1. **登录**（非 Mock）→ SSFluxServer App JWT + 安全存储 Refresh Token  
+2. **首页** → Feed 列表（游标分页、下拉刷新、加载更多）  
+3. **Feed 详情** → 大图 + 正文  
+4. **Media** → 示例音/视频 + 真实 API 上传（PNG presign 流程）
 
-> **Phase 2（未实现）**：Feed 列表内视频自动播放、media_kit 后端、真实鉴权、主题体系、离线同步等。
+> **Phase 2（未实现）**：Feed 列表内视频自动播放、media_kit、生产主题、离线同步等。
 
 ## SS 命名约定
 
@@ -201,7 +275,7 @@ GitHub Actions：`.github/workflows/ci.yml` — `dart pub get` → `melos bootst
 ## Roadmap Phase 2
 
 - [ ] 统一 Design System / 主题与暗色模式
-- [ ] Auth 真实后端 + Token 刷新
+- [x] Auth 真实后端 + Token 刷新（MVP，见 SSFluxServer 联调）
 - [ ] media_kit 视频实现与桌面/Web 适配
 - [ ] Feed 流内自动播放与可见性检测
 - [ ] 代码生成（Riverpod / Freezed）与模块模板 CLI

@@ -5,6 +5,7 @@ class SSFeedItem {
     required this.body,
     this.imageUrl,
     this.userId,
+    this.status,
   });
 
   final int id;
@@ -12,7 +13,21 @@ class SSFeedItem {
   final String body;
   final String? imageUrl;
   final int? userId;
+  final String? status;
 
+  factory SSFeedItem.fromFeedJson(Map<String, dynamic> json) {
+    final id = json['id'] as int;
+    return SSFeedItem(
+      id: id,
+      title: json['title'] as String? ?? '',
+      body: json['body'] as String? ?? '',
+      userId: json['userId'] as int?,
+      imageUrl: json['imageUrl'] as String?,
+      status: json['status'] as String?,
+    );
+  }
+
+  /// Legacy mock / jsonplaceholder compatibility.
   factory SSFeedItem.fromJson(Map<String, dynamic> json) {
     final id = json['id'] as int;
     return SSFeedItem(

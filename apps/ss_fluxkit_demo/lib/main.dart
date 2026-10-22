@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ss_core/ss_core.dart';
-import 'package:ss_feed/ss_feed.dart';
 import 'package:ss_network/ss_network.dart';
 
+import 'auth/ss_auth_controller.dart';
 import 'router/ss_app_router.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SSEnv.init(SSEnvConfig.fromEnvironment());
   SSLogger.init();
+  final storage = await createSSTokenStorage();
   runApp(
     ProviderScope(
       overrides: [
-        ssHttpClientProvider.overrideWith((ref) {
-          final config = SSEnv.config;
-          return SSHttpClient(
-            baseUrl: config.apiBaseUrl,
-            enableLogging: config.enableHttpLogging,
-          );
+        ssTokenStorageProvider.overrideWithValue(storage),
+        ssAccountDisabledHandlerProvider.overrideWith((ref) {
+          return () =>
+              ref.read(ssAuthControllerProvider.notifier).onAccountDisabled();
         }),
       ],
       child: const SSFluxKitDemoApp(),

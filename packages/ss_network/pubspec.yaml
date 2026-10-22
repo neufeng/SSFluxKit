@@ -1,5 +1,5 @@
 name: ss_network
-description: SSFluxKit network — Dio client, interceptors, pagination.
+description: SSFluxKit network — Dio client, interceptors, pagination, auth.
 version: 0.1.0
 publish_to: none
 
@@ -12,6 +12,9 @@ dependencies:
   dio: ^5.8.0
   flutter:
     sdk: flutter
+  flutter_riverpod: ^2.6.1
+  flutter_secure_storage: ^9.2.4
+  shared_preferences: ^2.5.3
   ss_core:
     path: ../ss_core
 

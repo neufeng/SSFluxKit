@@ -9,28 +9,28 @@ class SSFeedListState {
   const SSFeedListState({
     this.status = SSFeedListStatus.initial,
     this.items = const [],
-    this.page = 0,
+    this.nextCursor,
     this.hasMore = true,
     this.errorMessage,
   });
 
   final SSFeedListStatus status;
   final List<SSFeedItem> items;
-  final int page;
+  final String? nextCursor;
   final bool hasMore;
   final String? errorMessage;
 
   SSFeedListState copyWith({
     SSFeedListStatus? status,
     List<SSFeedItem>? items,
-    int? page,
+    String? nextCursor,
     bool? hasMore,
     String? errorMessage,
   }) {
     return SSFeedListState(
       status: status ?? this.status,
       items: items ?? this.items,
-      page: page ?? this.page,
+      nextCursor: nextCursor ?? this.nextCursor,
       hasMore: hasMore ?? this.hasMore,
       errorMessage: errorMessage,
     );
@@ -47,7 +47,7 @@ class SSFeedListController extends StateNotifier<SSFeedListState> {
       status: SSFeedListStatus.loading,
       errorMessage: null,
     );
-    final result = await _repository.fetchPage(page: 1);
+    final result = await _repository.fetchFeed();
     result.when(
       success: (page) {
         state = SSFeedListState(
@@ -55,7 +55,7 @@ class SSFeedListController extends StateNotifier<SSFeedListState> {
               ? SSFeedListStatus.empty
               : SSFeedListStatus.success,
           items: page.items,
-          page: 1,
+          nextCursor: page.nextCursor,
           hasMore: page.hasMore,
         );
       },
@@ -75,14 +75,13 @@ class SSFeedListController extends StateNotifier<SSFeedListState> {
       return;
     }
     state = state.copyWith(status: SSFeedListStatus.loadingMore);
-    final nextPage = state.page + 1;
-    final result = await _repository.fetchPage(page: nextPage);
+    final result = await _repository.fetchFeed(cursor: state.nextCursor);
     result.when(
       success: (page) {
         state = SSFeedListState(
           status: SSFeedListStatus.success,
           items: [...state.items, ...page.items],
-          page: nextPage,
+          nextCursor: page.nextCursor,
           hasMore: page.hasMore,
         );
       },

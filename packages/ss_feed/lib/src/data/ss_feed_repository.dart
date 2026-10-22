@@ -4,102 +4,113 @@ import 'package:ss_network/ss_network.dart';
 
 import 'ss_feed_item.dart';
 
-/// Fetches feed items from remote API or local mock fallback.
-class SSFeedRepository {
-  SSFeedRepository(this._client, {this.useMockOnFailure = true});
+abstract class SSFeedRepository {
+  Future<SSResult<SSCursorPage<SSFeedItem>>> fetchFeed({
+    String? cursor,
+    int limit = 20,
+  });
+
+  Future<SSResult<SSFeedItem>> fetchDetail(int id);
+}
+
+class SSFeedApiRepository implements SSFeedRepository {
+  SSFeedApiRepository(this._client);
 
   final SSHttpClient _client;
-  final bool useMockOnFailure;
 
-  static const _pageSize = 10;
-
-  Future<SSResult<SSOffsetPage<SSFeedItem>>> fetchPage({required int page}) async {
-    final result = await _client.get<List<dynamic>>(
-      '/posts',
-      queryParameters: {
-        '_page': page,
-        '_limit': _pageSize,
-      },
-    );
-
-    return result.when(
-      success: (list) {
-        final items = list
-            .map((e) => SSFeedItem.fromJson(e as Map<String, dynamic>))
-            .toList();
-        return SSSuccess(
-          SSOffsetPage(
-            items: items,
-            page: page,
-            pageSize: _pageSize,
-            hasMore: items.length >= _pageSize,
-          ),
-        );
-      },
-      failure: (error) {
-        if (useMockOnFailure) {
-          return SSSuccess(_mockPage(page));
-        }
-        return SSFailure(error);
-      },
-    );
-  }
-
-  Future<SSResult<SSFeedItem>> fetchDetail(int id) async {
+  @override
+  Future<SSResult<SSCursorPage<SSFeedItem>>> fetchFeed({
+    String? cursor,
+    int limit = 20,
+  }) async {
     final result = await _client.get<Map<String, dynamic>>(
-      '/posts/$id',
+      '/feed',
+      queryParameters: {
+        if (cursor != null && cursor.isNotEmpty) 'cursor': cursor,
+        'limit': limit,
+      },
       parser: (json) => json as Map<String, dynamic>,
     );
 
     return result.when(
-      success: (json) => SSSuccess(SSFeedItem.fromJson(json)),
-      failure: (error) {
-        if (useMockOnFailure) {
-          SSFeedItem? mock;
-          for (final item in _mockPage(1).items) {
-            if (item.id == id) {
-              mock = item;
-              break;
-            }
-          }
-          if (mock != null) {
-            return SSSuccess(mock);
-          }
-        }
-        return SSFailure(error);
+      success: (json) {
+        final page = SSCursorPage.fromJson(
+          json,
+          SSFeedItem.fromFeedJson,
+          itemsKey: 'items',
+          nextCursorKey: 'nextCursor',
+          hasMoreKey: 'hasMore',
+        );
+        return SSSuccess(page);
       },
+      failure: (error) => SSFailure(error),
     );
   }
 
-  SSOffsetPage<SSFeedItem> _mockPage(int page) {
-    final start = (page - 1) * _pageSize;
+  @override
+  Future<SSResult<SSFeedItem>> fetchDetail(int id) async {
+    final result = await _client.get<Map<String, dynamic>>(
+      '/feed/$id',
+      parser: (json) => json as Map<String, dynamic>,
+    );
+    return result.when(
+      success: (json) => SSSuccess(SSFeedItem.fromFeedJson(json)),
+      failure: (error) => SSFailure(error),
+    );
+  }
+}
+
+class SSFeedMockRepository implements SSFeedRepository {
+  static const _pageSize = 10;
+
+  @override
+  Future<SSResult<SSCursorPage<SSFeedItem>>> fetchFeed({
+    String? cursor,
+    int limit = 20,
+  }) async {
+    final pageIndex = cursor == null ? 0 : int.tryParse(cursor) ?? 0;
+    final start = pageIndex * _pageSize;
     final items = List.generate(_pageSize, (i) {
       final id = start + i + 1;
       return SSFeedItem(
         id: id,
         title: 'Mock 动态 #$id',
-        body: '这是本地 Mock 数据，用于演示 Feed 列表与详情（网络不可用时自动降级）。',
+        body: '本地 Mock 数据（SS_USE_MOCK=true）。',
         userId: (id % 5) + 1,
         imageUrl: 'https://picsum.photos/seed/ssmock$id/800/450',
+        status: 'published',
       );
     });
-    return SSOffsetPage(
-      items: items,
-      page: page,
-      pageSize: _pageSize,
-      hasMore: page < 3,
+    final hasMore = pageIndex < 2;
+    return SSSuccess(
+      SSCursorPage(
+        items: items,
+        nextCursor: hasMore ? '${pageIndex + 1}' : null,
+        hasMore: hasMore,
+      ),
+    );
+  }
+
+  @override
+  Future<SSResult<SSFeedItem>> fetchDetail(int id) async {
+    final page = await fetchFeed();
+    return page.when(
+      success: (p) {
+        for (final item in p.items) {
+          if (item.id == id) {
+            return SSSuccess(item);
+          }
+        }
+        return SSFailure(SSNotFoundError());
+      },
+      failure: (e) => SSFailure(e),
     );
   }
 }
 
 final ssFeedRepositoryProvider = Provider<SSFeedRepository>((ref) {
-  final client = ref.watch(ssHttpClientProvider);
-  return SSFeedRepository(client);
-});
-
-/// Provided by the host app — see demo `ss_app_providers.dart`.
-final ssHttpClientProvider = Provider<SSHttpClient>((ref) {
-  throw UnimplementedError(
-    'Override ssHttpClientProvider in the host app.',
-  );
+  if (SSEnv.config.useMock) {
+    return SSFeedMockRepository();
+  }
+  return SSFeedApiRepository(ref.watch(ssHttpClientProvider));
 });
