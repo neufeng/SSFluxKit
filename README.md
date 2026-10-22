@@ -27,42 +27,148 @@ ss_core (SSEnv, SSResult, SSAppError)
 
 依赖方向：**外层依赖内层**，业务通过 `SSResult` 与 `SSAppError` 统一错误形态。
 
-## 快速开始
+---
 
-### 环境
+## 本地环境搭建与运行
 
-- Flutter stable（3.22+ / Dart 3.5+）
-- [Melos](https://melos.invertase.dev/)：`dart pub global activate melos`
+以下命令可在终端**逐段复制粘贴**执行（默认仓库已 clone 到本地）。
 
-### 安装与运行
+### 1. 前置依赖
+
+| 依赖 | 要求 |
+| --- | --- |
+| **Git** | 任意近期版本，用于克隆仓库 |
+| **Flutter** | **stable** 渠道；工程 `environment.sdk` 为 **`^3.5.0`**（见根目录与各包 `pubspec.yaml`）。当前仓库 `pubspec.lock` 解析结果为 **Dart ≥ 3.13**、**Flutter ≥ 3.47**，建议使用与之匹配的 stable，避免 workspace 解析失败 |
+| **Dart** | 随 Flutter 安装；也可单独安装，但 Demo 必须以 Flutter SDK 运行 |
+| **Melos** | **8.x**（根 `pubspec.yaml` 中 `melos: ^8.0.0`），用于 monorepo 脚本与 bootstrap |
+
+**安装 Flutter（若尚未安装）**
+
+- 官方文档：[https://docs.flutter.dev/get-started/install](https://docs.flutter.dev/get-started/install)
+- 安装后执行：
 
 ```bash
-# 仓库根目录
-dart pub global activate melos   # 若尚未安装
-export PATH="$PATH:$HOME/.pub-cache/bin"
-dart pub get                     # 解析 Dart workspace
-melos bootstrap
-
-cd apps/ss_fluxkit_demo
-flutter run
+flutter doctor
+flutter --version
 ```
 
-### 配置 API Base URL
+**安装 Melos 并配置 PATH**
 
-默认使用 [JSONPlaceholder](https://jsonplaceholder.typicode.com) 作为公开示例 API（无密钥）。可通过编译参数覆盖：
+Melos 通过 `dart pub global` 安装；可执行文件位于 `$HOME/.pub-cache/bin`，需加入 PATH：
 
 ```bash
+dart pub global activate melos
+export PATH="$PATH:$HOME/.pub-cache/bin"
+melos --version
+```
+
+建议把 `export PATH="$PATH:$HOME/.pub-cache/bin"` 写入 `~/.bashrc` 或 `~/.zshrc`，新开终端后可直接使用 `melos`。
+
+**可选 IDE**
+
+- [VS Code](https://code.visualstudio.com/) + [Flutter 扩展](https://marketplace.visualstudio.com/items?itemName=Dart-Code.flutter)
+- [Android Studio](https://developer.android.com/studio) / IntelliJ + Flutter 插件  
+- 打开仓库**根目录**（含根 `pubspec.yaml` 的 workspace），不要只打开单个 package 目录，否则路径依赖与 Melos 脚本可能异常。
+
+### 2. 克隆与首次初始化
+
+```bash
+git clone https://github.com/neufeng/SSFluxKit.git
+cd SSFluxKit
+```
+
+在**仓库根目录**执行（顺序不要颠倒）：
+
+```bash
+# 1) 确保 melos 在 PATH 中（见上文）
+export PATH="$PATH:$HOME/.pub-cache/bin"
+
+# 2) 解析 Dart workspace（根 pubspec 列出全部 member 包）
+dart pub get
+
+# 3) 为各 member 执行 flutter pub get，并链接 workspace 依赖
+melos bootstrap
+```
+
+首次 `melos bootstrap` 会下载较多依赖，耗时取决于网络。成功后根目录存在 `pubspec.lock`，各包通过 `resolution: workspace` 共用解析结果。
+
+### 3. 运行 Demo 应用
+
+```bash
+cd apps/ss_fluxkit_demo
+flutter devices          # 查看可用设备 / 模拟器
+flutter run              # 默认选中列表中的第一个设备
+flutter run -d chrome    # 示例：指定 Web
+flutter run -d macos     # 示例：指定 macOS 桌面
+```
+
+**设备与模拟器**
+
+- 无设备时：先启动 Android 模拟器、iOS 模拟器（仅 macOS + Xcode），或连接真机并开启 USB 调试 / 开发者模式。
+- `flutter run` 交互：终端里按 **`d`** 可切换已连接设备（热重载 **`r`**，退出 **`q`**）。
+
+**各平台注意点（MVP Demo）**
+
+| 平台 | 说明 |
+| --- | --- |
+| **Android** | 需 Android SDK；首次建议 `flutter doctor --android-licenses`。Feed / 网络图片需联网。 |
+| **iOS** | 仅 **macOS**；需 Xcode 与 CocoaPods。真机需 Apple 开发者账号与签名（本仓库未配置签名）。 |
+| **macOS / Windows / Linux** | 桌面端可直接 `flutter run -d macos` 等；Linux 需对应桌面依赖（`flutter doctor` 会提示）。 |
+| **Web** | `flutter run -d chrome`；`video_player` / `just_audio` 在 Web 上能力有限，Media 页可能无法播放或行为与移动端不一致，**完整音视频演示建议 Android/iOS/桌面**。 |
+
+Demo 流程：首页 → Feed（下拉刷新、加载更多）→ 详情（大图）→ Media（示例音/视频 URL）。
+
+### 4. 配置 API Base URL（可选）
+
+默认使用 [JSONPlaceholder](https://jsonplaceholder.typicode.com)（公开示例，无 API Key）。覆盖方式：
+
+```bash
+cd apps/ss_fluxkit_demo
 flutter run --dart-define=SS_API_BASE_URL=https://your-api.example.com
 ```
 
-Feed 在网络失败时会**自动降级为本地 Mock 数据**，便于离线演示。
+Feed 请求失败时会**自动降级为本地 Mock**，便于无网或 API 不可达时仍演示 UI。
 
-### 静态检查
+### 5. 常用命令
+
+在**仓库根目录**（Melos 脚本）：
 
 ```bash
-melos run analyze
-melos run test
+export PATH="$PATH:$HOME/.pub-cache/bin"
+
+melos bootstrap          # 依赖变更后重新 bootstrap
+melos run analyze        # 全 workspace：flutter analyze
+melos run test           # 全 workspace：flutter test
+melos run format         # 全 workspace：dart format
 ```
+
+在**单个包**内（示例）：
+
+```bash
+cd packages/ss_core
+flutter test
+flutter analyze
+
+cd apps/ss_fluxkit_demo
+flutter test
+flutter run --dart-define=SS_API_BASE_URL=https://jsonplaceholder.typicode.com
+```
+
+Melos 8 的脚本定义在根目录 **`pubspec.yaml`** 的 `melos:` 段（非独立 `melos.yaml`）。
+
+### 6. 故障排查
+
+| 现象 | 处理建议 |
+| --- | --- |
+| **`melos: command not found`** | 执行 `dart pub global activate melos`，并把 `$HOME/.pub-cache/bin` 加入 PATH（见上文）。 |
+| **`melos bootstrap` 报 workspace / `resolution: workspace`** | 务必在**仓库根**先执行 `dart pub get`；Flutter/Dart 版本过旧时升级 stable 至满足 `pubspec.lock`（Dart ≥ 3.13、Flutter ≥ 3.47）。 |
+| **`pub get` / 依赖解析失败** | 检查网络与代理；删除各包下 `.dart_tool` 后于根目录重新 `dart pub get && melos bootstrap`。不要删除根目录 **`pubspec.lock`**（已纳入版本控制）。 |
+| **`flutter doctor` 有 ❌** | 按提示安装 Android SDK、Xcode、Linux 桌面库等；CI 仅跑 analyze/test，不代替本机运行环境。 |
+| **Media 页无法播放视频/音频** | 确认设备联网；Web 平台限制较多，请换 Android/iOS/桌面。Linux 需 `video_player` 对应系统库（GStreamer 等，`flutter doctor -v` 可查）。 |
+| **并发 analyze 报 Flutter lock** | 根脚本已设 `concurrency: 1`；本地勿同时对多包并行多个 `flutter` 命令。 |
+| **IDE 找不到 package 路径** | 用根目录打开工程，并执行过 `melos bootstrap`。 |
+
+---
 
 ## Demo 功能
 
@@ -90,7 +196,7 @@ melos run test
 
 ## CI
 
-GitHub Actions：`.github/workflows/ci.yml` — `melos bootstrap` → `melos run analyze` → `melos run test`。
+GitHub Actions：`.github/workflows/ci.yml` — `dart pub get` → `melos bootstrap` → `melos run analyze` → `melos run test`。
 
 ## Roadmap Phase 2
 
