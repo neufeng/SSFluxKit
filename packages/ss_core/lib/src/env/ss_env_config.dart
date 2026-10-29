@@ -7,6 +7,7 @@ class SSEnvConfig {
     this.useMock = false,
     this.demoUserEmail = 'demo@ssflux.local',
     this.demoUserPassword = 'DemoUser123!',
+    this.httpProxy = '',
   });
 
   /// Default App API base when [SS_API_BASE_URL] is unset.
@@ -27,7 +28,15 @@ class SSEnvConfig {
   final String demoUserEmail;
   final String demoUserPassword;
 
+  /// Debug-only HTTP proxy as `host:port` (e.g. Charles on the dev machine).
+  ///
+  /// Set via `--dart-define=SS_HTTP_PROXY=10.0.0.5:8888`. Empty means direct
+  /// connection (default). Does not read system Wi‑Fi proxy on device.
+  final String httpProxy;
+
   static const String _baseUrlDefine = String.fromEnvironment('SS_API_BASE_URL');
+
+  static const String _httpProxyDefine = String.fromEnvironment('SS_HTTP_PROXY');
 
   static const bool _useMockDefine = bool.fromEnvironment(
     'SS_USE_MOCK',
@@ -66,12 +75,16 @@ class SSEnvConfig {
     return u;
   }
 
+  /// Normalizes [SS_HTTP_PROXY] define value (`host:port`); empty → no proxy.
+  static String normalizeHttpProxy(String raw) => raw.trim();
+
   factory SSEnvConfig.fromEnvironment() {
     return SSEnvConfig(
       apiBaseUrl: defaultApiBaseUrlForPlatform(),
       useMock: _useMockDefine,
       demoUserEmail: _demoEmailDefine,
       demoUserPassword: _demoPasswordDefine,
+      httpProxy: normalizeHttpProxy(_httpProxyDefine),
     );
   }
 }

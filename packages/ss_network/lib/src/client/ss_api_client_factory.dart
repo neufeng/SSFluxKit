@@ -4,6 +4,7 @@ import '../auth/ss_auth_session.dart';
 import '../interceptors/ss_logging_interceptor.dart';
 import '../interceptors/ss_retry_interceptor.dart';
 import '../interceptors/ss_token_refresh_interceptor.dart';
+import 'ss_dio_factory.dart';
 import 'ss_http_client.dart';
 
 class SSApiClientFactory {
@@ -13,6 +14,7 @@ class SSApiClientFactory {
     required this.authApi,
     this.onAccountDisabled,
     this.enableLogging = true,
+    this.httpProxy = '',
   });
 
   final String baseUrl;
@@ -20,16 +22,10 @@ class SSApiClientFactory {
   final SSAuthApi authApi;
   final Future<void> Function()? onAccountDisabled;
   final bool enableLogging;
+  final String httpProxy;
 
   Dio createPublicDio() {
-    return Dio(
-      BaseOptions(
-        baseUrl: baseUrl,
-        connectTimeout: const Duration(seconds: 15),
-        receiveTimeout: const Duration(seconds: 30),
-        headers: {'Accept': 'application/json'},
-      ),
-    );
+    return SSDioFactory.create(baseUrl: baseUrl, httpProxy: httpProxy);
   }
 
   SSHttpClient createAuthorizedClient() {
