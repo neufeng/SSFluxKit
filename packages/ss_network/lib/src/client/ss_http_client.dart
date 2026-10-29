@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:ss_core/ss_core.dart';
 
 import '../errors/ss_api_error_mapper.dart';
+import 'ss_dio_factory.dart';
 
 /// Configurable Dio-based HTTP client.
 class SSHttpClient {
@@ -10,15 +11,9 @@ class SSHttpClient {
     Dio? dio,
     bool enableLogging = true,
     int maxRetries = 2,
+    String httpProxy = '',
   }) : _dio = dio ??
-            Dio(
-              BaseOptions(
-                baseUrl: baseUrl,
-                connectTimeout: const Duration(seconds: 15),
-                receiveTimeout: const Duration(seconds: 30),
-                headers: {'Accept': 'application/json'},
-              ),
-            );
+            SSDioFactory.create(baseUrl: baseUrl, httpProxy: httpProxy);
 
   SSHttpClient.fromDio(this._dio);
 
