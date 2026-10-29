@@ -122,13 +122,13 @@ Demo 流程：首页 → Feed（下拉刷新、加载更多）→ 详情（大�
 
 | 参数 | 说明 |
 | --- | --- |
-| `SS_API_BASE_URL` | 后端 **App API 根路径**（含 `/api/v1`，无尾斜杠）。未设置时默认 `http://api.ssflux.com/api/v1`（Charles Map Local / 本地 mock 域名）；联调本机 SSFluxServer 时请显式传入 `http://localhost:8080/api/v1`（Android 模拟器可用 `http://10.0.2.2:8080/api/v1`） |
+| `SS_API_BASE_URL` | 后端 **App API 根路径**（含 `/api/v1`，无尾斜杠）。未设置时使用 `SSEnvConfig.defaultAppApiBaseUrl`（当前默认主机 `api.example.cn`，即 `http://api.example.cn/api/v1`；管理台路径为 `http://api.example.cn/admin/v1`）。联调本机 SSFluxServer 时请显式传入 `http://localhost:8080/api/v1`（Android 模拟器可用 `http://10.0.2.2:8080/api/v1`） |
 | `SS_USE_MOCK` | `true` 时使用本地 Mock Feed/Media，**跳过登录**；`false`（默认）对接 [SSFluxServer](https://github.com/neufeng/SSFluxServer) |
 | `SS_DEMO_USER_EMAIL` / `SS_DEMO_USER_PASSWORD` | 登录页预填（默认与服务器 seed 一致：`demo@ssflux.local` / `DemoUser123!`） |
 
 ```bash
 cd apps/ss_fluxkit_demo
-# Charles Map Local 或已映射 api.ssflux.com 时（默认 Base URL，无需 SS_API_BASE_URL）
+# 默认 Base URL（api.example.cn），无需 SS_API_BASE_URL
 flutter run --dart-define=SS_USE_MOCK=false
 
 # 无后端时纯 UI 演示
@@ -202,7 +202,7 @@ docker compose up --build
 
 ```bash
 cd SSFluxKit/apps/ss_fluxkit_demo
-# 默认已指向 http://api.ssflux.com/api/v1；直连本机后端请加 SS_API_BASE_URL
+# 默认已指向 http://api.example.cn/api/v1；直连本机后端请加 SS_API_BASE_URL
 flutter run -d chrome --dart-define=SS_USE_MOCK=false
 # 或：flutter run -d chrome --dart-define=SS_USE_MOCK=false \
 #       --dart-define=SS_API_BASE_URL=http://localhost:8080/api/v1

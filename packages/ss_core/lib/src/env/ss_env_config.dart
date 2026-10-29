@@ -9,11 +9,19 @@ class SSEnvConfig {
     this.demoUserPassword = 'DemoUser123!',
   });
 
+  /// Canonical default API hostname (China-resolvable). Single source of truth for
+  /// derived default base URLs below.
+  static const String defaultApiHost = 'api.example.cn';
+
   /// Default App API base when [SS_API_BASE_URL] is unset.
   ///
-  /// Matches Charles Map Local host `api.ssflux.com` (HTTP). Override with
-  /// `--dart-define=SS_API_BASE_URL=...` for a real backend (e.g. local SSFluxServer).
-  static const String defaultAppApiBaseUrl = 'http://api.ssflux.com/api/v1';
+  /// Override with `--dart-define=SS_API_BASE_URL=...` (e.g. local SSFluxServer).
+  static const String defaultAppApiBaseUrl =
+      'http://$defaultApiHost/api/v1';
+
+  /// Default Admin API base (same host as [defaultAppApiBaseUrl]).
+  static const String defaultAdminApiBaseUrl =
+      'http://$defaultApiHost/admin/v1';
 
   /// REST API base URL including `/api/v1`, no trailing slash.
   final String apiBaseUrl;
