@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 /// Runtime environment configuration for SSFluxKit apps.
 class SSEnvConfig {
   const SSEnvConfig({
@@ -10,6 +8,12 @@ class SSEnvConfig {
     this.demoUserEmail = 'demo@ssflux.local',
     this.demoUserPassword = 'DemoUser123!',
   });
+
+  /// Default App API base when [SS_API_BASE_URL] is unset.
+  ///
+  /// Matches Charles Map Local host `api.ssflux.com` (HTTP). Override with
+  /// `--dart-define=SS_API_BASE_URL=...` for a real backend (e.g. local SSFluxServer).
+  static const String defaultAppApiBaseUrl = 'http://api.ssflux.com/api/v1';
 
   /// REST API base URL including `/api/v1`, no trailing slash.
   final String apiBaseUrl;
@@ -44,15 +48,7 @@ class SSEnvConfig {
     if (_baseUrlDefine.isNotEmpty) {
       return _normalizeBaseUrl(_baseUrlDefine);
     }
-    if (kIsWeb) {
-      return 'http://localhost:8080/api/v1';
-    }
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-        return 'http://10.0.2.2:8080/api/v1';
-      default:
-        return 'http://localhost:8080/api/v1';
-    }
+    return defaultAppApiBaseUrl;
   }
 
   static String _normalizeBaseUrl(String url) {
