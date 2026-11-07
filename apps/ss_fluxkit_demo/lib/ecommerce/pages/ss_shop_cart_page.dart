@@ -5,6 +5,7 @@ import 'package:ss_ui/ss_ui.dart';
 
 import '../data/ss_demo_catalog.dart';
 import '../models/ss_cart_item.dart';
+import '../providers/ss_cart_edit_mode.dart';
 import '../providers/ss_cart_notifier.dart';
 import '../theme/ss_shop_colors.dart';
 import '../widgets/ss_demo_product_art.dart';
@@ -15,6 +16,13 @@ class SSShopCartPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cart = ref.watch(ssCartProvider);
+    final editMode = ref.watch(ssCartEditModeProvider);
+
+    ref.listen<SSCartState>(ssCartProvider, (_, next) {
+      if (next.isEmpty) {
+        ref.read(ssCartEditModeProvider.notifier).state = false;
+      }
+    });
 
     return Scaffold(
       backgroundColor: SSShopColors.pageBg,
@@ -25,15 +33,18 @@ class SSShopCartPage extends ConsumerWidget {
         foregroundColor: Colors.black,
         scrolledUnderElevation: 0,
         actions: [
-          TextButton(
-            onPressed: cart.isEmpty
-                ? null
-                : () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('编辑模式：演示 UI，可删除商品行')),
-                    );
-                  },
-            child: const Text('编辑'),
+          Semantics(
+            label: editMode ? '购物车-完成编辑' : '购物车-编辑',
+            button: true,
+            child: TextButton(
+              onPressed: cart.isEmpty
+                  ? null
+                  : () {
+                      ref.read(ssCartEditModeProvider.notifier).state =
+                          !editMode;
+                    },
+              child: Text(editMode ? '完成' : '编辑'),
+            ),
           ),
         ],
       ),
@@ -41,13 +52,43 @@ class SSShopCartPage extends ConsumerWidget {
           ? SSEmptyState(
               title: '购物车还是空的',
               message: '快去挑选心仪好物吧\n此处为 UI 演示，未连接真实商品与库存',
-              action: FilledButton(
-                onPressed: () => context.go('/'),
-                child: const Text('去逛逛'),
+              action: Semantics(
+                label: '购物车-去逛逛',
+                button: true,
+                child: FilledButton(
+                  onPressed: () => context.go('/'),
+                  child: const Text('去逛逛'),
+                ),
               ),
             )
           : Column(
               children: [
+                if (editMode)
+                  Material(
+                    color: SSShopColors.primaryLight,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit_outlined,
+                              size: 18, color: SSShopColors.primary),
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            child: Text(
+                              '编辑模式：勾选后点「删除选中」，或点「取消编辑」退出',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: SSShopColors.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 Expanded(
                   child: ListView(
                     children: [
@@ -68,7 +109,10 @@ class SSShopCartPage extends ConsumerWidget {
                           children: [
                             _ShopHeader(shopName: entry.key),
                             ...entry.value.map(
-                              (line) => _CartLineTile(line: line),
+                              (line) => _CartLineTile(
+                                line: line,
+                                showQuantity: !editMode,
+                              ),
                             ),
                           ],
                         );
@@ -76,7 +120,10 @@ class SSShopCartPage extends ConsumerWidget {
                     ],
                   ),
                 ),
-                _CheckoutBar(cart: cart),
+                if (editMode)
+                  _EditModeBar(cart: cart)
+                else
+                  _CheckoutBar(cart: cart),
               ],
             ),
     );
@@ -138,9 +185,10 @@ class _ShopHeader extends StatelessWidget {
 }
 
 class _CartLineTile extends ConsumerWidget {
-  const _CartLineTile({required this.line});
+  const _CartLineTile({required this.line, this.showQuantity = true});
 
   final SSCartLine line;
+  final bool showQuantity;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -201,17 +249,18 @@ class _CartLineTile extends ConsumerWidget {
                         muted: !line.selected,
                       ),
                       const Spacer(),
-                      _QuantityStepper(
-                        quantity: line.quantity,
-                        onDec: () => notifier.setQuantity(
-                          line.lineId,
-                          line.quantity - 1,
+                      if (showQuantity)
+                        _QuantityStepper(
+                          quantity: line.quantity,
+                          onDec: () => notifier.setQuantity(
+                            line.lineId,
+                            line.quantity - 1,
+                          ),
+                          onInc: () => notifier.setQuantity(
+                            line.lineId,
+                            line.quantity + 1,
+                          ),
                         ),
-                        onInc: () => notifier.setQuantity(
-                          line.lineId,
-                          line.quantity + 1,
-                        ),
-                      ),
                     ],
                   ),
                 ],
@@ -277,6 +326,65 @@ class _StepButton extends StatelessWidget {
         width: 32,
         height: 32,
         child: Center(child: Text(label)),
+      ),
+    );
+  }
+}
+
+class _EditModeBar extends ConsumerWidget {
+  const _EditModeBar({required this.cart});
+
+  final SSCartState cart;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selected = cart.lines.where((l) => l.selected).length;
+    return Material(
+      color: Colors.white,
+      elevation: 8,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    ref.read(ssCartEditModeProvider.notifier).state = false;
+                  },
+                  child: const Text('取消编辑'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Semantics(
+                  label: '购物车-删除选中',
+                  button: true,
+                  child: FilledButton(
+                    onPressed: selected == 0
+                        ? null
+                        : () {
+                            ref
+                                .read(ssCartProvider.notifier)
+                                .removeSelectedLines();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('已删除 $selected 个演示商品行'),
+                              ),
+                            );
+                            if (ref.read(ssCartProvider).isEmpty) {
+                              ref.read(ssCartEditModeProvider.notifier).state =
+                                  false;
+                            }
+                          },
+                    child: Text('删除选中 ($selected)'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

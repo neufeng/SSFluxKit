@@ -14,6 +14,7 @@ import '../ecommerce/pages/ss_shop_shell.dart';
 import '../pages/ss_dev_hub_page.dart';
 import '../pages/ss_login_page.dart';
 import '../pages/ss_media_route_page.dart';
+import 'ss_app_redirect.dart';
 
 final ssAppRouterProvider = Provider<GoRouter>((ref) {
   final refresh = ref.watch(ssAuthRefreshListenableProvider);
@@ -24,27 +25,13 @@ final ssAppRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: '/',
     refreshListenable: refresh,
     redirect: (context, state) {
-      if (SSEnv.config.useMock) {
-        return null;
-      }
       final auth = ref.read(ssAuthControllerProvider);
-      if (!auth.initialized) {
-        return null;
-      }
-      final loggingIn = state.matchedLocation == '/login';
-      final loc = state.matchedLocation;
-      final isShop = loc == '/' ||
-          loc.startsWith('/category') ||
-          loc.startsWith('/cart') ||
-          loc.startsWith('/profile') ||
-          loc.startsWith('/product');
-      if (!auth.isAuthenticated && !loggingIn && !isShop) {
-        return '/login';
-      }
-      if (auth.isAuthenticated && loggingIn) {
-        return '/';
-      }
-      return null;
+      return ssResolveAppRedirect(
+        config: SSEnv.config,
+        authInitialized: auth.initialized,
+        isAuthenticated: auth.isAuthenticated,
+        matchedLocation: state.matchedLocation,
+      );
     },
     routes: [
       GoRoute(

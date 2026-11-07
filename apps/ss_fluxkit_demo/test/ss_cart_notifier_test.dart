@@ -28,6 +28,17 @@ void main() {
     expect(state.lines.any((l) => l.productId == 'p2'), isTrue);
   });
 
+  test('removeSelectedLines removes only selected rows', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final notifier = container.read(ssCartProvider.notifier);
+    notifier.toggleSelectAll(true);
+    final before = container.read(ssCartProvider).lines.length;
+    notifier.removeSelectedLines();
+    expect(container.read(ssCartProvider).lines, isEmpty);
+    expect(before, greaterThan(0));
+  });
+
   test('setQuantity to zero removes line', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);

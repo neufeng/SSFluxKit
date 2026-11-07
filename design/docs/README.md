@@ -69,9 +69,8 @@ flutter run -d chrome --dart-define=SS_USE_MOCK=true
 | 项 | 说明 |
 | --- | --- |
 | 底部导航 | Material 3 `NavigationBar` |
-| 首页快捷品类 | 静态展示，未跳转分类 Tab |
 | 状态栏 | 无 HTML 仿真 iOS 栏，使用 `SafeArea` |
-| 购物车编辑 | SnackBar 提示；删行可用数量减至 0 |
+| 非 Mock | 四 Tab 可无登录浏览；`/dev/*` 仍受登录保护 |
 
 ### 环境提示
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/ss_home_quick_categories.dart';
+import '../navigation/ss_shop_navigation.dart';
 import '../providers/ss_home_search.dart';
 import '../theme/ss_shop_colors.dart';
 import '../widgets/ss_product_card.dart';
@@ -205,48 +207,56 @@ class _PromoBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-      child: Container(
-        height: 132,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          gradient: const LinearGradient(
-            colors: [Color(0xFFFF6F60), Color(0xFFE53935), Color(0xFFC62828)],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('演示活动：未连接真实营销活动')),
+          );
+        },
+        child: Container(
+          height: 132,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFF6F60), Color(0xFFE53935), Color(0xFFC62828)],
             ),
-          ],
-        ),
-        padding: const EdgeInsets.all(20),
-        alignment: Alignment.centerLeft,
-        child: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              '暖冬焕新季',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
-            ),
-            SizedBox(height: 6),
-            Text(
-              '满299减50 · 演示活动文案',
-              style: TextStyle(color: Colors.white70, fontSize: 12),
-            ),
-          ],
+            ],
+          ),
+          padding: const EdgeInsets.all(20),
+          alignment: Alignment.centerLeft,
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '暖冬焕新季',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 6),
+              Text(
+                '满299减50 · 演示活动文案',
+                style: TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _QuickCategoryGrid extends StatelessWidget {
+class _QuickCategoryGrid extends ConsumerWidget {
   const _QuickCategoryGrid();
 
   static const _items = [
@@ -263,7 +273,7 @@ class _QuickCategoryGrid extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
@@ -284,24 +294,41 @@ class _QuickCategoryGrid extends StatelessWidget {
         mainAxisSpacing: 12,
         crossAxisSpacing: 4,
         children: _items.map((e) {
-          return Column(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: e.$3,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(e.$2, size: 22, color: SSShopColors.primary),
+          final label = e.$1;
+          return Semantics(
+            label: '品类-$label',
+            button: true,
+            child: InkWell(
+              onTap: () {
+                final l1 = ssHomeQuickCategoryL1Id(label);
+                if (l1 != null) {
+                  ssNavigateToCategoryTab(context, ref, l1CategoryId: l1);
+                } else {
+                  ssNavigateToCategoryTabDefault(context);
+                }
+              },
+              child: Column(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: e.$3,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(e.$2, size: 22, color: SSShopColors.primary),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: SSShopColors.textSecondary,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 6),
-              Text(
-                e.$1,
-                style: const TextStyle(
-                    fontSize: 11, color: SSShopColors.textSecondary),
-              ),
-            ],
+            ),
           );
         }).toList(),
       ),

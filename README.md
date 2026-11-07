@@ -128,7 +128,7 @@ flutter test                                            # 含购物车 / 搜索�
 
 - 设计稿源文件：`design/docs/`（Phase 1 HTML）；Flutter 实现：`lib/ecommerce/`
 - 原框架 Feed / Media / 登录：从 **我的 → 常用服务**（Feed 列表、Media 演示、框架演示）进入，路由为 `/dev/*`
-- Web 截图（可选）：`flutter build web --dart-define=SS_USE_MOCK=true` 后执行 `node tool/capture_web_screenshots.mjs`
+- Web 验收脚本：`node tool/web_interaction_flow.mjs`（含宫格→分类、编辑态、空态；空态截图使用 `--dart-define=SS_CART_DEMO_EMPTY=true` 仅用于静态验收，默认 Demo 仍预置购物车）
 
 **原 Feed / Media 流程**：我的 → 框架演示 或 Feed 列表 → 详情；Media 演示（示例音/视频 URL）。
 

@@ -38,6 +38,9 @@ class SSCartState {
 class SSCartNotifier extends Notifier<SSCartState> {
   @override
   SSCartState build() {
+    if (const bool.fromEnvironment('SS_CART_DEMO_EMPTY', defaultValue: false)) {
+      return const SSCartState();
+    }
     // 预置演示购物车，与设计稿一致（含一条未选中）。
     return SSCartState(
       lines: [
@@ -128,6 +131,41 @@ class SSCartNotifier extends Notifier<SSCartState> {
 
   void clear() {
     state = const SSCartState();
+  }
+
+  void removeSelectedLines() {
+    state = state.copyWith(
+      lines: state.lines.where((l) => !l.selected).toList(),
+    );
+  }
+
+  /// 测试 / 演示用：重置为预置购物车。
+  void resetDemoSeed() {
+    state = SSCartState(
+      lines: [
+        SSCartLine(
+          lineId: 'l1',
+          productId: 'p1',
+          sku: '星空黑',
+          quantity: 1,
+          selected: true,
+        ),
+        SSCartLine(
+          lineId: 'l2',
+          productId: 'p3',
+          sku: '陶瓷白',
+          quantity: 2,
+          selected: true,
+        ),
+        SSCartLine(
+          lineId: 'l3',
+          productId: 'p4',
+          sku: '120g 标准装',
+          quantity: 1,
+          selected: false,
+        ),
+      ],
+    );
   }
 }
 

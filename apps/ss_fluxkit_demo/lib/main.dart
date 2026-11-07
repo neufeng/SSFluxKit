@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ss_core/ss_core.dart';
 import 'package:ss_network/ss_network.dart';
@@ -8,6 +10,9 @@ import 'router/ss_app_router.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (kIsWeb) {
+    SemanticsBinding.instance.ensureSemantics();
+  }
   SSEnv.init(SSEnvConfig.fromEnvironment());
   SSLogger.init();
   final storage = await createSSTokenStorage();
