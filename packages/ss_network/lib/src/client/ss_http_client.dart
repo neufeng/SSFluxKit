@@ -66,6 +66,51 @@ class SSHttpClient {
     }
   }
 
+  Future<SSResult<T>> patch<T>(
+    String path, {
+    dynamic data,
+    T Function(dynamic json)? parser,
+  }) async {
+    try {
+      final response = await _dio.patch<dynamic>(path, data: data);
+      final body = response.data;
+      if (parser != null) {
+        return SSSuccess(parser(body));
+      }
+      return SSSuccess(body as T);
+    } on DioException catch (e, st) {
+      SSLogger.e('PATCH $path failed', e, st);
+      return SSFailure(SSApiErrorMapper.fromDioException(e));
+    } catch (e, st) {
+      SSLogger.e('PATCH $path failed', e, st);
+      return SSFailure(SSUnknownError(e.toString(), e));
+    }
+  }
+
+  Future<SSResult<T>> delete<T>(
+    String path, {
+    dynamic data,
+    T Function(dynamic json)? parser,
+  }) async {
+    try {
+      final response = await _dio.delete<dynamic>(path, data: data);
+      final body = response.data;
+      if (parser != null && body != null) {
+        return SSSuccess(parser(body));
+      }
+      if (parser != null && body == null) {
+        return SSSuccess(parser(null));
+      }
+      return SSSuccess(body as T);
+    } on DioException catch (e, st) {
+      SSLogger.e('DELETE $path failed', e, st);
+      return SSFailure(SSApiErrorMapper.fromDioException(e));
+    } catch (e, st) {
+      SSLogger.e('DELETE $path failed', e, st);
+      return SSFailure(SSUnknownError(e.toString(), e));
+    }
+  }
+
   Future<SSResult<T>> putBytes<T>(
     String url,
     List<int> bytes, {

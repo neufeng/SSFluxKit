@@ -1,0 +1,15 @@
+{
+  "displayName": "Demo 用户",
+  "email": "demo@ssflux.local",
+  "maskedPhone": "138****8888",
+  "memberLevel": "普通会员",
+  "orderStatusCounts": {
+    "pendingPayment": 0,
+    "pendingShipment": 2,
+    "pendingReceipt": 0,
+    "pendingReview": 0,
+    "afterSale": 0
+  },
+  "isDemoData": true,
+  "demoDisclaimer": "订单数量为演示数据，非真实交易"
+}

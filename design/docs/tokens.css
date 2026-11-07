@@ -1,0 +1,75 @@
+/**
+ * SSFluxKit 电商 UI 设计令牌（Phase 1）
+ * 与 Demo 主题 seed #1565C0 对齐，扩展零售场景语义色。
+ */
+:root {
+  /* Brand — 对齐 apps/ss_fluxkit_demo Material seedColor */
+  --ss-color-primary: #1565c0;
+  --ss-color-primary-light: #e3f2fd;
+  --ss-color-primary-dark: #0d47a1;
+  --ss-color-on-primary: #ffffff;
+
+  /* Retail accents */
+  --ss-color-price: #e53935;
+  --ss-color-price-secondary: #ff6f60;
+  --ss-color-badge: #ff9800;
+  --ss-color-success: #43a047;
+
+  /* Surfaces */
+  --ss-color-bg: #f5f6f8;
+  --ss-color-surface: #ffffff;
+  --ss-color-surface-muted: #fafafa;
+  --ss-color-divider: #eeeeee;
+  --ss-color-border: #e0e0e0;
+
+  /* Text */
+  --ss-color-text-primary: #1a1a1a;
+  --ss-color-text-secondary: #666666;
+  --ss-color-text-tertiary: #999999;
+  --ss-color-text-inverse: #ffffff;
+
+  /* Typography scale (px, mobile) */
+  --ss-font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    "Noto Sans SC", system-ui, -apple-system, sans-serif;
+  --ss-font-size-xs: 11px;
+  --ss-font-size-sm: 12px;
+  --ss-font-size-base: 14px;
+  --ss-font-size-md: 15px;
+  --ss-font-size-lg: 16px;
+  --ss-font-size-xl: 18px;
+  --ss-font-size-2xl: 20px;
+  --ss-font-weight-regular: 400;
+  --ss-font-weight-medium: 500;
+  --ss-font-weight-semibold: 600;
+  --ss-font-weight-bold: 700;
+  --ss-line-height-tight: 1.25;
+  --ss-line-height-normal: 1.5;
+
+  /* Spacing */
+  --ss-space-1: 4px;
+  --ss-space-2: 8px;
+  --ss-space-3: 12px;
+  --ss-space-4: 16px;
+  --ss-space-5: 20px;
+  --ss-space-6: 24px;
+  --ss-space-8: 32px;
+
+  /* Radius */
+  --ss-radius-sm: 6px;
+  --ss-radius-md: 10px;
+  --ss-radius-lg: 12px;
+  --ss-radius-xl: 16px;
+  --ss-radius-pill: 999px;
+
+  /* Shadow */
+  --ss-shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.06);
+  --ss-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --ss-shadow-tab: 0 -2px 10px rgba(0, 0, 0, 0.06);
+
+  /* Layout */
+  --ss-phone-width: 390px;
+  --ss-phone-height: 844px;
+  --ss-tab-bar-height: 56px;
+  --ss-safe-top: 44px;
+  --ss-status-bar-height: 20px;
+}

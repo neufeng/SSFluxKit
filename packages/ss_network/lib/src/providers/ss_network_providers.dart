@@ -8,6 +8,7 @@ import '../auth/ss_token_storage.dart';
 import '../client/ss_api_client_factory.dart';
 import '../client/ss_dio_factory.dart';
 import '../client/ss_http_client.dart';
+import '../shop/ss_shop_api.dart';
 
 typedef SSAccountDisabledCallback = Future<void> Function();
 
@@ -41,6 +42,14 @@ final ssHttpClientProvider = Provider<SSHttpClient>((ref) {
     httpProxy: SSEnv.config.httpProxy,
   );
   return factory.createAuthorizedClient();
+});
+
+final ssShopApiProvider = Provider<SSShopApi>((ref) {
+  final baseUrl = SSEnv.config.apiBaseUrl;
+  return SSShopApi(
+    publicDio: _publicDio(baseUrl),
+    authorizedClient: ref.watch(ssHttpClientProvider),
+  );
 });
 
 Dio _publicDio(String baseUrl) {

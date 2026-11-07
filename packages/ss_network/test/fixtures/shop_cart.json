@@ -1,0 +1,30 @@
+{
+  "lines": [
+    {
+      "lineId": "550e8400-e29b-41d4-a716-446655440000",
+      "productId": "p1",
+      "sku": "星空黑",
+      "quantity": 1,
+      "selected": true,
+      "product": {
+        "id": "p1",
+        "title": "轻薄降噪无线耳机 演示款 Pro",
+        "subtitle": "星空黑 · 官方标配",
+        "priceCents": 29900,
+        "categoryL1Id": "digital",
+        "categoryL2Id": "earphone",
+        "shopName": "Flux 演示旗舰店",
+        "soldCount": 23000,
+        "artKey": "earphone",
+        "skus": ["星空黑", "陶瓷白"],
+        "isDemoCatalog": true
+      }
+    }
+  ],
+  "badgeCount": 1,
+  "selectedTotalCents": 29900,
+  "allSelected": true,
+  "selectedSkuCount": 1,
+  "isEmpty": false,
+  "isDemoCatalog": true
+}

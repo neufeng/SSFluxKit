@@ -1,0 +1,31 @@
+{
+  "banners": [
+    {
+      "id": "banner-1",
+      "title": "秋冬焕新季",
+      "subtitle": "演示活动 · 满减券可领",
+      "badgeText": "热卖",
+      "isDemo": true
+    }
+  ],
+  "quickCategories": [
+    { "label": "数码", "categoryL1Id": "digital" },
+    { "label": "更多", "categoryL1Id": null }
+  ],
+  "recommendedProducts": [
+    {
+      "id": "p1",
+      "title": "轻薄降噪无线耳机 演示款 Pro",
+      "subtitle": "星空黑 · 官方标配",
+      "priceCents": 29900,
+      "categoryL1Id": "digital",
+      "categoryL2Id": "earphone",
+      "shopName": "Flux 演示旗舰店",
+      "soldCount": 23000,
+      "artKey": "earphone",
+      "skus": ["星空黑", "陶瓷白"],
+      "isDemoCatalog": true
+    }
+  ],
+  "isDemoCatalog": true
+}

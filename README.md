@@ -116,7 +116,21 @@ flutter run -d macos     # 示例：指定 macOS 桌面
 | **macOS / Windows / Linux** | 桌面端可直接 `flutter run -d macos` 等；Linux 需对应桌面依赖（`flutter doctor` 会提示）。 |
 | **Web** | `flutter run -d chrome`；`video_player` / `just_audio` 在 Web 上能力有限，Media 页可能无法播放或行为与移动端不一致，**完整音视频演示建议 Android/iOS/桌面**。 |
 
-Demo 流程：首页 → Feed（下拉刷新、加载更多）→ 详情（大图）→ Media（示例音/视频 URL）。
+**电商四 Tab Demo**
+
+默认启动即为 **首页 / 分类 / 购物车 / 我的** 底部导航（`go_router` `StatefulShellRoute`）。`SS_USE_MOCK=true` 时使用**本地演示数据**；`SS_USE_MOCK=false` 时对接 SSFluxServer `/api/v1/shop/*`（目录公开，购物车与我的需登录）。联调步骤见 [`docs/SHOP_INTEGRATION.md`](docs/SHOP_INTEGRATION.md)。
+
+```bash
+cd apps/ss_fluxkit_demo
+flutter run -d chrome --dart-define=SS_USE_MOCK=true   # Web 快速验收 UI
+flutter test                                            # 含购物车 / 搜索单测
+```
+
+- 设计稿源文件：`design/docs/`（Phase 1 HTML）；Flutter 实现：`lib/ecommerce/`
+- 原框架 Feed / Media / 登录：从 **我的 → 常用服务**（Feed 列表、Media 演示、框架演示）进入，路由为 `/dev/*`
+- Web 验收脚本：`node tool/web_interaction_flow.mjs`（含宫格→分类、编辑态、空态；空态截图使用 `--dart-define=SS_CART_DEMO_EMPTY=true` 仅用于静态验收，默认 Demo 仍预置购物车）
+
+**原 Feed / Media 流程**：我的 → 框架演示 或 Feed 列表 → 详情；Media 演示（示例音/视频 URL）。
 
 ### 4. 编译参数（Base URL / Mock）
 
