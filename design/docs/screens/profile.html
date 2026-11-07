@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>我的 — SSFluxKit 电商 UI 设计稿</title>
+    <link rel="stylesheet" href="../phone-shell.css" />
+    <style>
+      .profile-header {
+        background: linear-gradient(135deg, #1565c0 0%, #1976d2 50%, #42a5f5 100%);
+        padding: var(--ss-space-2) var(--ss-space-4) var(--ss-space-6);
+        color: white;
+      }
+      .profile-header .status-bar {
+        background: transparent;
+        color: white;
+      }
+      .user-row {
+        display: flex;
+        align-items: center;
+        gap: var(--ss-space-4);
+        margin-top: var(--ss-space-2);
+      }
+      .avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        background: linear-gradient(145deg, #90caf9, #1565c0);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: var(--ss-font-weight-bold);
+      }
+      .user-meta h2 {
+        font-size: var(--ss-font-size-xl);
+        font-weight: var(--ss-font-weight-semibold);
+        margin-bottom: 4px;
+      }
+      .user-meta p {
+        font-size: var(--ss-font-size-sm);
+        opacity: 0.85;
+      }
+      .member-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 8px;
+        padding: 4px 10px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: var(--ss-radius-pill);
+        font-size: var(--ss-font-size-xs);
+      }
+      .order-card {
+        margin: calc(-1 * var(--ss-space-4)) var(--ss-space-4) var(--ss-space-3);
+        background: var(--ss-color-surface);
+        border-radius: var(--ss-radius-lg);
+        box-shadow: var(--ss-shadow-md);
+        padding: var(--ss-space-4);
+      }
+      .order-card .head {
+        display: flex;
+        justify-content: space-between;
+        font-size: var(--ss-font-size-sm);
+        margin-bottom: var(--ss-space-4);
+      }
+      .order-card .head a {
+        color: var(--ss-color-text-tertiary);
+        text-decoration: none;
+      }
+      .order-status {
+        display: flex;
+        justify-content: space-between;
+      }
+      .order-status .item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        font-size: var(--ss-font-size-xs);
+        color: var(--ss-color-text-secondary);
+        position: relative;
+      }
+      .order-status .icon-wrap {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--ss-radius-md);
+        background: var(--ss-color-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--ss-color-primary);
+      }
+      .order-status .dot {
+        position: absolute;
+        top: -2px;
+        right: 4px;
+        width: 16px;
+        height: 16px;
+        background: var(--ss-color-price);
+        color: white;
+        font-size: 10px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .service-grid {
+        margin: 0 var(--ss-space-4);
+        background: var(--ss-color-surface);
+        border-radius: var(--ss-radius-lg);
+        padding: var(--ss-space-4);
+        box-shadow: var(--ss-shadow-sm);
+      }
+      .service-grid h3 {
+        font-size: var(--ss-font-size-md);
+        font-weight: var(--ss-font-weight-semibold);
+        margin-bottom: var(--ss-space-4);
+      }
+      .services {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--ss-space-4) var(--ss-space-2);
+      }
+      .services .svc {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        font-size: var(--ss-font-size-xs);
+        color: var(--ss-color-text-secondary);
+      }
+      .services .svc .ico {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--ss-radius-sm);
+        background: var(--ss-color-primary-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+      }
+      .list-card {
+        margin: var(--ss-space-3) var(--ss-space-4);
+        background: var(--ss-color-surface);
+        border-radius: var(--ss-radius-lg);
+        overflow: hidden;
+        box-shadow: var(--ss-shadow-sm);
+      }
+      .list-card .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--ss-space-4);
+        font-size: var(--ss-font-size-sm);
+        border-bottom: 1px solid var(--ss-color-divider);
+      }
+      .list-card .row:last-child {
+        border-bottom: none;
+      }
+      .list-card .row span:last-child {
+        color: var(--ss-color-text-tertiary);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="phone" id="screen">
+      <div class="profile-header">
+        <div class="status-bar dark">
+          <span>9:41</span>
+          <span>⚙</span>
+        </div>
+        <div class="user-row">
+          <div class="avatar">演</div>
+          <div class="user-meta">
+            <h2>演示用户</h2>
+            <p>手机号 138****8888 · 非真实账户</p>
+            <div class="member-badge">✦ 普通会员</div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="scroll-content" style="background:var(--ss-color-bg)">
+          <div class="order-card">
+            <div class="head">
+              <strong>我的订单</strong>
+              <a href="#">全部订单 ›</a>
+            </div>
+            <div class="order-status">
+              <div class="item"><div class="icon-wrap">💰</div>待付款</div>
+              <div class="item"><div class="icon-wrap"><span class="dot">2</span>📦</div>待发货</div>
+              <div class="item"><div class="icon-wrap">🚚</div>待收货</div>
+              <div class="item"><div class="icon-wrap">⭐</div>待评价</div>
+              <div class="item"><div class="icon-wrap">↩</div>退换/售后</div>
+            </div>
+          </div>
+          <div class="service-grid">
+            <h3>常用服务</h3>
+            <div class="services">
+              <div class="svc"><div class="ico">🎫</div>优惠券</div>
+              <div class="svc"><div class="ico">📍</div>收货地址</div>
+              <div class="svc"><div class="ico">❤</div>我的收藏</div>
+              <div class="svc"><div class="ico">👣</div>浏览记录</div>
+              <div class="svc"><div class="ico">💬</div>联系客服</div>
+              <div class="svc"><div class="ico">🏪</div>我的店铺</div>
+              <div class="svc"><div class="ico">📋</div>发票中心</div>
+              <div class="svc"><div class="ico">⋯</div>更多</div>
+            </div>
+          </div>
+          <div class="list-card">
+            <div class="row"><span>账户与安全</span><span>›</span></div>
+            <div class="row"><span>消息通知</span><span>演示 ›</span></div>
+            <div class="row"><span>关于 SSFluxKit 电商 Demo</span><span>›</span></div>
+          </div>
+        </div>
+        <nav class="tab-bar">
+          <div class="tab-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>首页</div>
+          <div class="tab-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6 10h4v-4h-4v4zm0-6h4v-4h-4v4z"/></svg>分类</div>
+          <div class="tab-item"><span class="badge-dot"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg></span>购物车</div>
+          <div class="tab-item active"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>我的</div>
+        </nav>
+      </div>
+    </div>
+  </body>
+</html>

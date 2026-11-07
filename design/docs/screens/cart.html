@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>购物车 — SSFluxKit 电商 UI 设计稿</title>
+    <link rel="stylesheet" href="../phone-shell.css" />
+    <style>
+      .cart-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--ss-space-3) var(--ss-space-4);
+        background: var(--ss-color-surface);
+        font-size: var(--ss-font-size-sm);
+        border-bottom: 1px solid var(--ss-color-divider);
+      }
+      .cart-toolbar .edit {
+        color: var(--ss-color-primary);
+      }
+      .select-all-row {
+        display: flex;
+        align-items: center;
+        gap: var(--ss-space-2);
+        padding: var(--ss-space-3) var(--ss-space-4);
+        background: var(--ss-color-surface);
+        margin-bottom: var(--ss-space-2);
+        font-size: var(--ss-font-size-sm);
+      }
+      .cart-item {
+        display: flex;
+        gap: var(--ss-space-3);
+        padding: var(--ss-space-4);
+        background: var(--ss-color-surface);
+        margin-bottom: var(--ss-space-2);
+        align-items: flex-start;
+      }
+      .cart-item .product-thumb {
+        width: 88px;
+        height: 88px;
+        flex-shrink: 0;
+      }
+      .cart-item .body {
+        flex: 1;
+        min-width: 0;
+      }
+      .cart-item .title {
+        font-size: var(--ss-font-size-sm);
+        line-height: var(--ss-line-height-tight);
+        margin-bottom: 4px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .cart-item .sku {
+        font-size: var(--ss-font-size-xs);
+        color: var(--ss-color-text-tertiary);
+        background: var(--ss-color-bg);
+        padding: 4px 8px;
+        border-radius: var(--ss-radius-sm);
+        display: inline-block;
+        margin-bottom: 8px;
+      }
+      .cart-item .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .stepper {
+        display: flex;
+        align-items: center;
+        border: 1px solid var(--ss-color-border);
+        border-radius: var(--ss-radius-sm);
+        overflow: hidden;
+      }
+      .stepper button {
+        width: 28px;
+        height: 28px;
+        border: none;
+        background: var(--ss-color-surface-muted);
+        font-size: 16px;
+        color: var(--ss-color-text-secondary);
+        cursor: default;
+      }
+      .stepper span {
+        width: 36px;
+        text-align: center;
+        font-size: var(--ss-font-size-sm);
+        border-left: 1px solid var(--ss-color-border);
+        border-right: 1px solid var(--ss-color-border);
+        line-height: 28px;
+      }
+      .shop-header {
+        display: flex;
+        align-items: center;
+        gap: var(--ss-space-2);
+        padding: var(--ss-space-3) var(--ss-space-4) 0;
+        font-size: var(--ss-font-size-sm);
+        font-weight: var(--ss-font-weight-medium);
+        background: var(--ss-color-surface);
+      }
+      .checkout-bar {
+        display: flex;
+        align-items: center;
+        gap: var(--ss-space-3);
+        padding: var(--ss-space-3) var(--ss-space-4);
+        background: var(--ss-color-surface);
+        border-top: 1px solid var(--ss-color-divider);
+        flex-shrink: 0;
+      }
+      .checkout-bar .summary {
+        flex: 1;
+        text-align: right;
+        font-size: var(--ss-font-size-sm);
+      }
+      .checkout-bar .summary strong {
+        font-size: var(--ss-font-size-xl);
+      }
+      .checkout-bar .btn-primary {
+        padding: 12px 28px;
+      }
+      .page-title-bar {
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--ss-color-surface);
+        font-size: var(--ss-font-size-lg);
+        font-weight: var(--ss-font-weight-semibold);
+        border-bottom: 1px solid var(--ss-color-divider);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="phone" id="screen">
+      <div class="status-bar"><span>9:41</span><span></span></div>
+      <div class="page-title-bar">购物车 (3)</div>
+      <div class="cart-toolbar">
+        <span style="color:var(--ss-color-text-tertiary)">演示店铺商品，非真实库存</span>
+        <span class="edit">编辑</span>
+      </div>
+      <div class="screen-body">
+        <div class="scroll-content" style="background:var(--ss-color-bg)">
+          <div class="select-all-row">
+            <div class="checkbox checked"></div>
+            <span>全选</span>
+          </div>
+          <div class="shop-header">
+            <div class="checkbox checked"></div>
+            <span>Flux 演示旗舰店</span>
+            <span class="chip chip-tag" style="margin-left:auto">店铺券</span>
+          </div>
+          <div class="cart-item">
+            <div class="checkbox checked" style="margin-top:34px"></div>
+            <div class="product-thumb"><svg viewBox="0 0 24 24" fill="#90a4ae"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2z"/></svg></div>
+            <div class="body">
+              <div class="title">轻薄降噪无线耳机 演示款 Pro</div>
+              <span class="sku">颜色：星空黑</span>
+              <div class="row">
+                <span class="price price-lg" style="font-size:17px">299.00</span>
+                <div class="stepper"><button>−</button><span>1</span><button>+</button></div>
+              </div>
+            </div>
+          </div>
+          <div class="shop-header" style="padding-top:12px">
+            <div class="checkbox checked"></div>
+            <span>生活好物自营店</span>
+          </div>
+          <div class="cart-item">
+            <div class="checkbox checked" style="margin-top:34px"></div>
+            <div class="product-thumb"><svg viewBox="0 0 24 24" fill="#90a4ae"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2z"/></svg></div>
+            <div class="body">
+              <div class="title">智能保温杯 液晶显温 500ml</div>
+              <span class="sku">规格：陶瓷白</span>
+              <div class="row">
+                <span class="price price-lg" style="font-size:17px">89.00</span>
+                <div class="stepper"><button>−</button><span>2</span><button>+</button></div>
+              </div>
+            </div>
+          </div>
+          <div class="cart-item">
+            <div class="checkbox" style="margin-top:34px;border-color:#ddd"></div>
+            <div class="product-thumb" style="opacity:0.85"><svg viewBox="0 0 24 24" fill="#90a4ae"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2z"/></svg></div>
+            <div class="body">
+              <div class="title" style="color:#999">氨基酸洁面乳（未选中示例）</div>
+              <span class="sku">120g 标准装</span>
+              <div class="row">
+                <span class="price" style="font-size:15px;color:#bbb">68.00</span>
+                <div class="stepper"><button>−</button><span>1</span><button>+</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="checkout-bar">
+          <div class="checkbox checked"></div>
+          <span style="font-size:13px">全选</span>
+          <div class="summary">
+            合计 <strong class="price" style="font-size:20px">477.00</strong>
+            <div style="font-size:11px;color:#999;margin-top:2px">已优惠 ¥20.00 · 不含运费</div>
+          </div>
+          <button type="button" class="btn-primary">结算 (2)</button>
+        </div>
+        <nav class="tab-bar">
+          <div class="tab-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>首页</div>
+          <div class="tab-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6 10h4v-4h-4v4zm0-6h4v-4h-4v4z"/></svg>分类</div>
+          <div class="tab-item active"><span class="badge-dot"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg></span>购物车</div>
+          <div class="tab-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>我的</div>
+        </nav>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>SSFluxKit 电商四 Tab 设计总览</title>
+    <link rel="stylesheet" href="./phone-shell.css" />
+    <style>
+      body.overview {
+        background: linear-gradient(180deg, #dfe3e8 0%, #eceff1 100%);
+        flex-direction: column;
+        gap: 24px;
+      }
+      .overview-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #263238;
+        text-align: center;
+      }
+      .overview-sub {
+        text-align: center;
+        color: #607d8b;
+        font-size: 14px;
+        margin-top: -12px;
+      }
+      .overview-grid {
+        transform: scale(0.92);
+        transform-origin: top center;
+      }
+      iframe {
+        border: none;
+        width: 390px;
+        height: 844px;
+        border-radius: 40px;
+        box-shadow: 0 24px 48px rgba(0, 0, 0, 0.15);
+        background: white;
+      }
+    </style>
+  </head>
+  <body class="overview">
+    <h1 class="overview-title">SSFluxKit 电商 UI · Phase 1 设计稿</h1>
+    <p class="overview-sub">首页 · 分类 · 购物车 · 我的 — 390×844 首屏 · 演示数据</p>
+    <div class="overview-grid">
+      <div class="overview-col">
+        <iframe src="./screens/home.html" title="首页"></iframe>
+        <div class="overview-label">首页</div>
+      </div>
+      <div class="overview-col">
+        <iframe src="./screens/category.html" title="分类"></iframe>
+        <div class="overview-label">分类</div>
+      </div>
+      <div class="overview-col">
+        <iframe src="./screens/cart.html" title="购物车"></iframe>
+        <div class="overview-label">购物车</div>
+      </div>
+      <div class="overview-col">
+        <iframe src="./screens/profile.html" title="我的"></iframe>
+        <div class="overview-label">我的</div>
+      </div>
+    </div>
+  </body>
+</html>

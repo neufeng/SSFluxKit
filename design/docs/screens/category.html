@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>分类 — SSFluxKit 电商 UI 设计稿</title>
+    <link rel="stylesheet" href="../phone-shell.css" />
+    <style>
+      .cat-layout {
+        display: flex;
+        flex: 1;
+        min-height: 0;
+        background: var(--ss-color-surface);
+      }
+      .cat-sidebar {
+        width: 96px;
+        background: var(--ss-color-bg);
+        overflow-y: auto;
+        flex-shrink: 0;
+      }
+      .cat-sidebar::-webkit-scrollbar {
+        display: none;
+      }
+      .cat-l1 {
+        padding: var(--ss-space-4) var(--ss-space-2);
+        font-size: var(--ss-font-size-sm);
+        color: var(--ss-color-text-secondary);
+        text-align: center;
+        border-left: 3px solid transparent;
+        line-height: var(--ss-line-height-tight);
+      }
+      .cat-l1.active {
+        background: var(--ss-color-surface);
+        color: var(--ss-color-primary);
+        font-weight: var(--ss-font-weight-semibold);
+        border-left-color: var(--ss-color-primary);
+      }
+      .cat-main {
+        flex: 1;
+        overflow-y: auto;
+        padding: var(--ss-space-3) var(--ss-space-4);
+      }
+      .cat-main::-webkit-scrollbar {
+        display: none;
+      }
+      .cat-title {
+        font-size: var(--ss-font-size-md);
+        font-weight: var(--ss-font-weight-semibold);
+        margin-bottom: var(--ss-space-3);
+      }
+      .cat-l2-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--ss-space-3);
+        margin-bottom: var(--ss-space-5);
+      }
+      .cat-l2-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        font-size: var(--ss-font-size-xs);
+        color: var(--ss-color-text-secondary);
+      }
+      .cat-l2-item .thumb {
+        width: 56px;
+        height: 56px;
+        border-radius: var(--ss-radius-md);
+      }
+      .mini-products h4 {
+        font-size: var(--ss-font-size-sm);
+        color: var(--ss-color-text-tertiary);
+        margin-bottom: var(--ss-space-3);
+        font-weight: var(--ss-font-weight-medium);
+      }
+      .mini-row {
+        display: flex;
+        gap: var(--ss-space-3);
+        padding: var(--ss-space-3) 0;
+        border-bottom: 1px solid var(--ss-color-divider);
+      }
+      .mini-row:last-child {
+        border-bottom: none;
+      }
+      .mini-row .product-thumb {
+        width: 72px;
+        height: 72px;
+        flex-shrink: 0;
+      }
+      .mini-row .detail {
+        flex: 1;
+        min-width: 0;
+      }
+      .mini-row .name {
+        font-size: var(--ss-font-size-sm);
+        color: var(--ss-color-text-primary);
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .mini-row .sub {
+        font-size: var(--ss-font-size-xs);
+        color: var(--ss-color-text-tertiary);
+        margin-bottom: 6px;
+      }
+      .page-title-bar {
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--ss-color-surface);
+        font-size: var(--ss-font-size-lg);
+        font-weight: var(--ss-font-weight-semibold);
+        border-bottom: 1px solid var(--ss-color-divider);
+        flex-shrink: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="phone" id="screen">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span style="opacity:0.8">分类</span>
+      </div>
+      <div class="page-title-bar">全部分类</div>
+      <div class="screen-body">
+        <div class="cat-layout">
+          <aside class="cat-sidebar">
+            <div class="cat-l1 active">手机数码</div>
+            <div class="cat-l1">电脑办公</div>
+            <div class="cat-l1">家用电器</div>
+            <div class="cat-l1">服饰鞋包</div>
+            <div class="cat-l1">美妆护肤</div>
+            <div class="cat-l1">食品生鲜</div>
+            <div class="cat-l1">母婴玩具</div>
+            <div class="cat-l1">运动户外</div>
+          </aside>
+          <div class="cat-main">
+            <div class="cat-title">手机数码</div>
+            <div class="cat-l2-grid">
+              <div class="cat-l2-item"><div class="product-thumb thumb">手机</div>智能手机</div>
+              <div class="cat-l2-item"><div class="product-thumb thumb">平板</div>平板电脑</div>
+              <div class="cat-l2-item"><div class="product-thumb thumb">耳机</div>耳机音响</div>
+              <div class="cat-l2-item"><div class="product-thumb thumb">手表</div>智能手表</div>
+              <div class="cat-l2-item"><div class="product-thumb thumb">配件</div>数码配件</div>
+              <div class="cat-l2-item"><div class="product-thumb thumb">相机</div>摄影摄像</div>
+            </div>
+            <div class="mini-products">
+              <h4>热销推荐 · 演示数据</h4>
+              <div class="mini-row">
+                <div class="product-thumb"><svg viewBox="0 0 24 24" fill="#90a4ae"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2z"/></svg></div>
+                <div class="detail">
+                  <div class="name">5G 旗舰手机 演示版 256GB</div>
+                  <div class="sub">幻影黑 · 官方标配</div>
+                  <span class="price" style="font-size:15px">3999.00</span>
+                </div>
+              </div>
+              <div class="mini-row">
+                <div class="product-thumb"><svg viewBox="0 0 24 24" fill="#90a4ae"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2z"/></svg></div>
+                <div class="detail">
+                  <div class="name">主动降噪蓝牙耳机</div>
+                  <div class="sub">白色 · 续航 30h</div>
+                  <span class="price" style="font-size:15px">499.00</span>
+                </div>
+              </div>
+              <div class="mini-row">
+                <div class="product-thumb"><svg viewBox="0 0 24 24" fill="#90a4ae"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2z"/></svg></div>
+                <div class="detail">
+                  <div class="name">快充移动电源 20000mAh</div>
+                  <div class="sub">22.5W · 双向快充</div>
+                  <span class="price" style="font-size:15px">129.00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <nav class="tab-bar">
+          <div class="tab-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>首页</div>
+          <div class="tab-item active"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6 10h4v-4h-4v4zm0-6h4v-4h-4v4z"/></svg>分类</div>
+          <div class="tab-item"><span class="badge-dot"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg></span>购物车</div>
+          <div class="tab-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>我的</div>
+        </nav>
+      </div>
+    </div>
+  </body>
+</html>
