@@ -14,3 +14,5 @@ export 'src/models/ss_user.dart';
 export 'src/pagination/ss_cursor_page.dart';
 export 'src/pagination/ss_offset_page.dart';
 export 'src/providers/ss_network_providers.dart';
+export 'src/shop/ss_shop_api.dart';
+export 'src/shop/ss_shop_models.dart';

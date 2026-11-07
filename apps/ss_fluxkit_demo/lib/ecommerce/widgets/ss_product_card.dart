@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ss_network/ss_network.dart';
 
-import '../models/ss_demo_product.dart';
 import '../theme/ss_shop_colors.dart';
 import 'ss_demo_product_art.dart';
 
 class SSProductCard extends StatelessWidget {
   const SSProductCard({super.key, required this.product});
 
-  final SSDemoProduct product;
+  final SSShopProduct product;
 
   @override
   Widget build(BuildContext context) {

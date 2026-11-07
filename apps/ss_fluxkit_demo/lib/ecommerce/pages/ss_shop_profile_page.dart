@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ss_core/ss_core.dart';
+import 'package:ss_network/ss_network.dart';
+import 'package:ss_ui/ss_ui.dart';
 
+import '../../auth/ss_auth_controller.dart';
+import '../providers/ss_shop_me_provider.dart';
 import '../theme/ss_shop_colors.dart';
 
 class SSShopProfilePage extends ConsumerWidget {
@@ -16,44 +20,132 @@ class SSShopProfilePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final meAsync = ref.watch(ssShopMeProvider);
+    final auth = ref.watch(ssAuthControllerProvider);
+
     return Scaffold(
       backgroundColor: SSShopColors.pageBg,
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(child: _ProfileHeader()),
-          SliverToBoxAdapter(child: _OrderCard(onTap: _demoSnack)),
-          SliverToBoxAdapter(
-            child: _ServiceGrid(
-              onService: (label) {
-                if (label == '框架演示') {
-                  context.push('/dev');
-                } else if (label == 'Feed 列表') {
-                  context.push('/dev/feed');
-                } else if (label == 'Media 演示') {
-                  context.push('/dev/media');
-                } else if (label == '登录 / 账户') {
-                  if (SSEnv.config.useMock) {
-                    _demoSnack(context, 'Mock 模式：登录页为框架演示，电商无需真实账户');
-                  } else {
-                    context.push('/login');
-                  }
-                } else {
-                  _demoSnack(context, '「$label」为演示入口，未连接真实业务');
-                }
-              },
+      body: meAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => SSErrorState(
+          message: e is SSAppError ? e.message : e.toString(),
+          onRetry: () => ref.invalidate(ssShopMeProvider),
+        ),
+        data: (me) {
+          if (!SSEnv.config.useMock && !auth.isAuthenticated) {
+            return _LoggedOutBody(
+              onLogin: () => context.push('/login'),
+            );
+          }
+          return CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(child: _ProfileHeader(me: me)),
+              if (me?.demoDisclaimer != null)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: Material(
+                      color: SSShopColors.primaryLight,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Text(
+                          me!.demoDisclaimer!,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: SSShopColors.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              SliverToBoxAdapter(
+                child: _OrderCard(
+                  counts: me?.orderStatusCounts,
+                  onTap: _demoSnack,
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: _ServiceGrid(
+                  onService: (label) {
+                    if (label == '框架演示') {
+                      context.push('/dev');
+                    } else if (label == 'Feed 列表') {
+                      context.push('/dev/feed');
+                    } else if (label == 'Media 演示') {
+                      context.push('/dev/media');
+                    } else if (label == '登录 / 账户') {
+                      context.push('/login');
+                    } else {
+                      _demoSnack(context, '「$label」为演示入口，未连接真实业务');
+                    }
+                  },
+                ),
+              ),
+              SliverToBoxAdapter(child: _SettingsList(onTap: _demoSnack)),
+              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _LoggedOutBody extends StatelessWidget {
+  const _LoggedOutBody({required this.onLogin});
+
+  final VoidCallback onLogin;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.person_outline,
+                size: 64, color: SSShopColors.textTertiary),
+            const SizedBox(height: 16),
+            const Text(
+              '登录后查看订单与账户信息',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
             ),
-          ),
-          SliverToBoxAdapter(child: _SettingsList(onTap: _demoSnack)),
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
-        ],
+            const SizedBox(height: 8),
+            const Text(
+              '商品浏览无需登录；购物车与我的页需 Bearer 会话',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                color: SSShopColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 24),
+            FilledButton(
+              onPressed: onLogin,
+              child: const Text('去登录'),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({this.me});
+
+  final SSShopMeResponse? me;
+
   @override
   Widget build(BuildContext context) {
+    final display = me?.displayName ?? '演示用户';
+    final phone = me?.maskedPhone ?? '手机号未绑定';
+    final member = me?.memberLevel ?? '普通会员';
+    final initial = display.isNotEmpty ? display.characters.first : '?';
+
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -69,9 +161,9 @@ class _ProfileHeader extends StatelessWidget {
               CircleAvatar(
                 radius: 32,
                 backgroundColor: Colors.white.withValues(alpha: 0.25),
-                child: const Text(
-                  '演',
-                  style: TextStyle(
+                child: Text(
+                  initial,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -79,25 +171,26 @@ class _ProfileHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '演示用户',
-                      style: TextStyle(
+                      display,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      '手机号 138****8888 · 非真实账户',
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                      phone,
+                      style:
+                          const TextStyle(color: Colors.white70, fontSize: 12),
                     ),
-                    SizedBox(height: 8),
-                    _MemberBadge(),
+                    const SizedBox(height: 8),
+                    _MemberBadge(level: member),
                   ],
                 ),
               ),
@@ -110,7 +203,9 @@ class _ProfileHeader extends StatelessWidget {
 }
 
 class _MemberBadge extends StatelessWidget {
-  const _MemberBadge();
+  const _MemberBadge({required this.level});
+
+  final String level;
 
   @override
   Widget build(BuildContext context) {
@@ -119,11 +214,11 @@ class _MemberBadge extends StatelessWidget {
         color: Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         child: Text(
-          '✦ 普通会员',
-          style: TextStyle(color: Colors.white, fontSize: 11),
+          '✦ $level',
+          style: const TextStyle(color: Colors.white, fontSize: 11),
         ),
       ),
     );
@@ -131,16 +226,17 @@ class _MemberBadge extends StatelessWidget {
 }
 
 class _OrderCard extends StatelessWidget {
-  const _OrderCard({required this.onTap});
+  const _OrderCard({required this.counts, required this.onTap});
 
+  final SSShopOrderStatusCounts? counts;
   final void Function(BuildContext, String) onTap;
 
   static const _items = [
-    ('待付款', Icons.payment_outlined, null),
-    ('待发货', Icons.inventory_2_outlined, '2'),
-    ('待收货', Icons.local_shipping_outlined, null),
-    ('待评价', Icons.star_outline, null),
-    ('退换/售后', Icons.assignment_return_outlined, null),
+    ('待付款', Icons.payment_outlined, _CountKey.pendingPayment),
+    ('待发货', Icons.inventory_2_outlined, _CountKey.pendingShipment),
+    ('待收货', Icons.local_shipping_outlined, _CountKey.pendingReceipt),
+    ('待评价', Icons.star_outline, _CountKey.pendingReview),
+    ('退换/售后', Icons.assignment_return_outlined, _CountKey.afterSale),
   ];
 
   @override
@@ -184,6 +280,7 @@ class _OrderCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: _items.map((e) {
+              final badge = _badgeFor(e.$3, counts);
               return InkWell(
                 onTap: () => onTap(context, e.$1),
                 child: Column(
@@ -201,7 +298,7 @@ class _OrderCard extends StatelessWidget {
                           ),
                           child: Icon(e.$2, color: SSShopColors.primary),
                         ),
-                        if (e.$3 != null)
+                        if (badge != null)
                           Positioned(
                             right: -4,
                             top: -4,
@@ -209,7 +306,7 @@ class _OrderCard extends StatelessWidget {
                               radius: 8,
                               backgroundColor: SSShopColors.price,
                               child: Text(
-                                e.$3!,
+                                badge,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 10,
@@ -236,6 +333,26 @@ class _OrderCard extends StatelessWidget {
       ),
     );
   }
+
+  static String? _badgeFor(_CountKey key, SSShopOrderStatusCounts? counts) {
+    if (counts == null) return null;
+    final value = switch (key) {
+      _CountKey.pendingPayment => counts.pendingPayment,
+      _CountKey.pendingShipment => counts.pendingShipment,
+      _CountKey.pendingReceipt => counts.pendingReceipt,
+      _CountKey.pendingReview => counts.pendingReview,
+      _CountKey.afterSale => counts.afterSale,
+    };
+    return value > 0 ? '$value' : null;
+  }
+}
+
+enum _CountKey {
+  pendingPayment,
+  pendingShipment,
+  pendingReceipt,
+  pendingReview,
+  afterSale,
 }
 
 class _ServiceGrid extends StatelessWidget {

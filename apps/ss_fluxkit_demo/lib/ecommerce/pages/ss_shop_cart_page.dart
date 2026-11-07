@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ss_core/ss_core.dart';
 import 'package:ss_ui/ss_ui.dart';
-
-import '../data/ss_demo_catalog.dart';
 import '../models/ss_cart_item.dart';
 import '../providers/ss_cart_edit_mode.dart';
 import '../providers/ss_cart_notifier.dart';
@@ -19,7 +18,7 @@ class SSShopCartPage extends ConsumerWidget {
     final editMode = ref.watch(ssCartEditModeProvider);
 
     ref.listen<SSCartState>(ssCartProvider, (_, next) {
-      if (next.isEmpty) {
+      if (next.isEmptyEffective) {
         ref.read(ssCartEditModeProvider.notifier).state = false;
       }
     });
@@ -27,7 +26,9 @@ class SSShopCartPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: SSShopColors.pageBg,
       appBar: AppBar(
-        title: Text(cart.isEmpty ? '购物车' : '购物车 (${cart.lines.length})'),
+        title: Text(
+          cart.isEmptyEffective ? '购物车' : '购物车 (${cart.lines.length})',
+        ),
         centerTitle: true,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -37,7 +38,7 @@ class SSShopCartPage extends ConsumerWidget {
             label: editMode ? '购物车-完成编辑' : '购物车-编辑',
             button: true,
             child: TextButton(
-              onPressed: cart.isEmpty
+              onPressed: cart.isEmptyEffective
                   ? null
                   : () {
                       ref.read(ssCartEditModeProvider.notifier).state =
@@ -48,92 +49,119 @@ class SSShopCartPage extends ConsumerWidget {
           ),
         ],
       ),
-      body: cart.isEmpty
-          ? SSEmptyState(
-              title: '购物车还是空的',
-              message: '快去挑选心仪好物吧\n此处为 UI 演示，未连接真实商品与库存',
-              action: Semantics(
-                label: '购物车-去逛逛',
-                button: true,
-                child: FilledButton(
-                  onPressed: () => context.go('/'),
-                  child: const Text('去逛逛'),
-                ),
+      body: _buildBody(context, ref, cart, editMode),
+    );
+  }
+
+  Widget _buildBody(
+    BuildContext context,
+    WidgetRef ref,
+    SSCartState cart,
+    bool editMode,
+  ) {
+    if (!SSEnv.config.useMock && cart.requiresAuth) {
+      return SSEmptyState(
+        title: '登录后同步购物车',
+        message: '购物车数据保存在服务端，与当前账号绑定',
+        action: FilledButton(
+          onPressed: () => context.push('/login'),
+          child: const Text('去登录'),
+        ),
+      );
+    }
+    if (cart.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (cart.errorMessage != null) {
+      return SSErrorState(
+        message: cart.errorMessage!,
+        onRetry: () => ref.read(ssCartProvider.notifier).reloadFromServer(),
+      );
+    }
+    if (cart.isEmptyEffective) {
+      return SSEmptyState(
+        title: '购物车还是空的',
+        message: SSEnv.config.useMock
+            ? '快去挑选心仪好物吧\n此处为 UI 演示，未连接真实商品与库存'
+            : '登录后加购的商品会显示在这里',
+        action: Semantics(
+          label: '购物车-去逛逛',
+          button: true,
+          child: FilledButton(
+            onPressed: () => context.go('/'),
+            child: const Text('去逛逛'),
+          ),
+        ),
+      );
+    }
+    return Column(
+      children: [
+        if (editMode)
+          Material(
+            color: SSShopColors.primaryLight,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
               ),
-            )
-          : Column(
-              children: [
-                if (editMode)
-                  Material(
-                    color: SSShopColors.primaryLight,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit_outlined,
-                              size: 18, color: SSShopColors.primary),
-                          const SizedBox(width: 8),
-                          const Expanded(
-                            child: Text(
-                              '编辑模式：勾选后点「删除选中」，或点「取消编辑」退出',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: SSShopColors.primary,
-                              ),
-                            ),
-                          ),
-                        ],
+              child: Row(
+                children: [
+                  Icon(Icons.edit_outlined,
+                      size: 18, color: SSShopColors.primary),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      '编辑模式：勾选后点「删除选中」，或点「取消编辑」退出',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: SSShopColors.primary,
                       ),
                     ),
                   ),
-                Expanded(
-                  child: ListView(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Text(
-                          '演示店铺商品，非真实库存',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: SSShopColors.textTertiary,
-                          ),
-                        ),
-                      ),
-                      _SelectAllRow(cart: cart),
-                      ..._groupedLines(cart.lines).entries.map((entry) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _ShopHeader(shopName: entry.key),
-                            ...entry.value.map(
-                              (line) => _CartLineTile(
-                                line: line,
-                                showQuantity: !editMode,
-                              ),
-                            ),
-                          ],
-                        );
-                      }),
-                    ],
+                ],
+              ),
+            ),
+          ),
+        Expanded(
+          child: ListView(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Text(
+                  '演示店铺商品，非真实库存',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: SSShopColors.textTertiary,
                   ),
                 ),
-                if (editMode)
-                  _EditModeBar(cart: cart)
-                else
-                  _CheckoutBar(cart: cart),
-              ],
-            ),
+              ),
+              _SelectAllRow(cart: cart),
+              ..._groupedLines(cart.lines).entries.map((entry) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _ShopHeader(shopName: entry.key),
+                    ...entry.value.map(
+                      (line) => _CartLineTile(
+                        line: line,
+                        showQuantity: !editMode,
+                      ),
+                    ),
+                  ],
+                );
+              }),
+            ],
+          ),
+        ),
+        if (editMode) _EditModeBar(cart: cart) else _CheckoutBar(cart: cart),
+      ],
     );
   }
 
   static Map<String, List<SSCartLine>> _groupedLines(List<SSCartLine> lines) {
     final map = <String, List<SSCartLine>>{};
     for (final line in lines) {
-      final product = SSDemoCatalog.productById(line.productId);
-      final shop = product?.shopName ?? '演示店铺';
+      final shop = line.product?.shopName ?? '演示店铺';
       map.putIfAbsent(shop, () => []).add(line);
     }
     return map;
@@ -153,8 +181,9 @@ class _SelectAllRow extends ConsumerWidget {
         value:
             cart.allSelected ? true : (cart.hasPartialSelection ? null : false),
         tristate: true,
-        onChanged: (_) =>
-            ref.read(ssCartProvider.notifier).toggleSelectAll(null),
+        onChanged: (_) async {
+          await ref.read(ssCartProvider.notifier).toggleSelectAll(null);
+        },
         title: const Text('全选', style: TextStyle(fontSize: 14)),
         controlAffinity: ListTileControlAffinity.leading,
         contentPadding: const EdgeInsets.symmetric(horizontal: 8),
@@ -192,7 +221,7 @@ class _CartLineTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final product = SSDemoCatalog.productById(line.productId);
+    final product = line.product;
     if (product == null) return const SizedBox.shrink();
     final notifier = ref.read(ssCartProvider.notifier);
 
@@ -205,7 +234,7 @@ class _CartLineTile extends ConsumerWidget {
           children: [
             Checkbox(
               value: line.selected,
-              onChanged: (_) => notifier.toggleLine(line.lineId),
+              onChanged: (_) async => notifier.toggleLine(line.lineId),
             ),
             SSDemoProductArt(artKey: product.artKey, size: 88),
             const SizedBox(width: 12),
@@ -252,11 +281,11 @@ class _CartLineTile extends ConsumerWidget {
                       if (showQuantity)
                         _QuantityStepper(
                           quantity: line.quantity,
-                          onDec: () => notifier.setQuantity(
+                          onDec: () async => notifier.setQuantity(
                             line.lineId,
                             line.quantity - 1,
                           ),
-                          onInc: () => notifier.setQuantity(
+                          onInc: () async => notifier.setQuantity(
                             line.lineId,
                             line.quantity + 1,
                           ),
@@ -364,16 +393,24 @@ class _EditModeBar extends ConsumerWidget {
                   child: FilledButton(
                     onPressed: selected == 0
                         ? null
-                        : () {
-                            ref
+                        : () async {
+                            await ref
                                 .read(ssCartProvider.notifier)
                                 .removeSelectedLines();
+                            if (!context.mounted) return;
+                            final after = ref.read(ssCartProvider);
+                            if (after.errorMessage != null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(after.errorMessage!)),
+                              );
+                              return;
+                            }
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('已删除 $selected 个演示商品行'),
+                                content: Text('已删除 $selected 个商品行'),
                               ),
                             );
-                            if (ref.read(ssCartProvider).isEmpty) {
+                            if (after.isEmptyEffective) {
                               ref.read(ssCartEditModeProvider.notifier).state =
                                   false;
                             }
@@ -412,7 +449,7 @@ class _CheckoutBar extends ConsumerWidget {
                     ? true
                     : (cart.hasPartialSelection ? null : false),
                 tristate: true,
-                onChanged: (_) =>
+                onChanged: (_) async =>
                     ref.read(ssCartProvider.notifier).toggleSelectAll(null),
               ),
               const Text('全选', style: TextStyle(fontSize: 13)),

@@ -6,6 +6,7 @@ import 'package:ss_core/ss_core.dart';
 import 'package:ss_network/ss_network.dart';
 
 import 'auth/ss_auth_controller.dart';
+import 'ecommerce/providers/ss_shop_session_sync.dart';
 import 'router/ss_app_router.dart';
 
 Future<void> main() async {
@@ -35,6 +36,7 @@ class SSFluxKitDemoApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(ssShopSessionSyncProvider);
     final router = ref.watch(ssAppRouterProvider);
     return MaterialApp.router(
       title: SSEnv.config.appName,

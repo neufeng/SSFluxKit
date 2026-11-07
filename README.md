@@ -116,9 +116,9 @@ flutter run -d macos     # 示例：指定 macOS 桌面
 | **macOS / Windows / Linux** | 桌面端可直接 `flutter run -d macos` 等；Linux 需对应桌面依赖（`flutter doctor` 会提示）。 |
 | **Web** | `flutter run -d chrome`；`video_player` / `just_audio` 在 Web 上能力有限，Media 页可能无法播放或行为与移动端不一致，**完整音视频演示建议 Android/iOS/桌面**。 |
 
-**电商四 Tab Demo（Mock 推荐）**
+**电商四 Tab Demo**
 
-默认启动即为 **首页 / 分类 / 购物车 / 我的** 底部导航（`go_router` `StatefulShellRoute`）。商品、价格、订单均为**本地演示数据**，结算仅弹窗提示，未接真实支付。
+默认启动即为 **首页 / 分类 / 购物车 / 我的** 底部导航（`go_router` `StatefulShellRoute`）。`SS_USE_MOCK=true` 时使用**本地演示数据**；`SS_USE_MOCK=false` 时对接 SSFluxServer `/api/v1/shop/*`（目录公开，购物车与我的需登录）。联调步骤见 [`docs/SHOP_INTEGRATION.md`](docs/SHOP_INTEGRATION.md)。
 
 ```bash
 cd apps/ss_fluxkit_demo

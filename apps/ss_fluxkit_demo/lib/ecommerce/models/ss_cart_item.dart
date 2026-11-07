@@ -1,6 +1,6 @@
-import 'ss_demo_product.dart';
+import 'package:ss_network/ss_network.dart';
 
-/// 购物车行（演示数据，内存态）。
+/// 购物车行；API 模式含嵌套 `product` 与服务端 UUID `lineId`。
 class SSCartLine {
   const SSCartLine({
     required this.lineId,
@@ -8,6 +8,7 @@ class SSCartLine {
     required this.sku,
     required this.quantity,
     this.selected = true,
+    this.product,
   });
 
   final String lineId;
@@ -15,6 +16,7 @@ class SSCartLine {
   final String sku;
   final int quantity;
   final bool selected;
+  final SSShopProduct? product;
 
   SSCartLine copyWith({
     String? lineId,
@@ -22,6 +24,7 @@ class SSCartLine {
     String? sku,
     int? quantity,
     bool? selected,
+    SSShopProduct? product,
   }) {
     return SSCartLine(
       lineId: lineId ?? this.lineId,
@@ -29,10 +32,13 @@ class SSCartLine {
       sku: sku ?? this.sku,
       quantity: quantity ?? this.quantity,
       selected: selected ?? this.selected,
+      product: product ?? this.product,
     );
   }
-}
 
-extension SSCartLineProduct on SSCartLine {
-  int lineTotalCents(SSDemoProduct product) => product.priceCents * quantity;
+  int lineTotalCents() {
+    final p = product;
+    if (p == null) return 0;
+    return p.priceCents * quantity;
+  }
 }

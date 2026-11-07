@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ss_core/ss_core.dart';
+import 'package:ss_network/ss_network.dart';
+import 'package:ss_ui/ss_ui.dart';
 
 import '../data/ss_home_quick_categories.dart';
 import '../navigation/ss_shop_navigation.dart';
 import '../providers/ss_home_search.dart';
+import '../providers/ss_shop_catalog_providers.dart';
 import '../theme/ss_shop_colors.dart';
 import '../widgets/ss_product_card.dart';
 
@@ -31,8 +35,58 @@ class _SSShopHomePageState extends ConsumerState<SSShopHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final products = ref.watch(ssHomeFilteredProductsProvider);
     final query = ref.watch(ssHomeSearchQueryProvider);
+
+    if (SSEnv.config.useMock) {
+      final products = ref.watch(ssHomeFilteredProductsProvider);
+      return _buildHome(context, ref, products, query);
+    }
+
+    if (query.isNotEmpty) {
+      return ref.watch(ssProductSearchProvider).when(
+            loading: () => const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            ),
+            error: (e, _) => Scaffold(
+              body: SSErrorState(
+                message: e is SSAppError ? e.message : e.toString(),
+                onRetry: () => ref.invalidate(ssProductSearchProvider),
+              ),
+            ),
+            data: (products) => _buildHome(context, ref, products, query),
+          );
+    }
+
+    final homeAsync = ref.watch(ssShopHomeProvider);
+    return homeAsync.when(
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, _) => Scaffold(
+        body: SSErrorState(
+          message: e is SSAppError ? e.message : e.toString(),
+          onRetry: () => ref.invalidate(ssShopHomeProvider),
+        ),
+      ),
+      data: (home) => _buildHome(
+        context,
+        ref,
+        home.recommendedProducts,
+        query,
+        home: home,
+      ),
+    );
+  }
+
+  Widget _buildHome(
+    BuildContext context,
+    WidgetRef ref,
+    List<SSShopProduct> products,
+    String query, {
+    SSShopHomeResponse? home,
+  }) {
+    final demoCatalog = home?.isDemoCatalog ?? SSEnv.config.useMock;
+    final countLabel = demoCatalog ? '演示商品' : '商品';
 
     return Scaffold(
       backgroundColor: SSShopColors.pageBg,
@@ -45,7 +99,7 @@ class _SSShopHomePageState extends ConsumerState<SSShopHomePage> {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                 child: Text(
-                  '共 ${products.length} 件演示商品',
+                  '共 ${products.length} 件$countLabel',
                   style: const TextStyle(
                     fontSize: 12,
                     color: SSShopColors.textTertiary,
@@ -54,8 +108,8 @@ class _SSShopHomePageState extends ConsumerState<SSShopHomePage> {
               ),
             ),
           if (query.isEmpty) ...[
-            const SliverToBoxAdapter(child: _PromoBanner()),
-            const SliverToBoxAdapter(child: _QuickCategoryGrid()),
+            SliverToBoxAdapter(child: _PromoBanner(home: home)),
+            SliverToBoxAdapter(child: _QuickCategoryGrid(home: home)),
             const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(16, 8, 16, 12),
@@ -70,7 +124,7 @@ class _SSShopHomePageState extends ConsumerState<SSShopHomePage> {
                       ),
                     ),
                     Text(
-                      '演示推荐',
+                      '推荐',
                       style: TextStyle(
                         fontSize: 12,
                         color: SSShopColors.textTertiary,
@@ -91,12 +145,28 @@ class _SSShopHomePageState extends ConsumerState<SSShopHomePage> {
               ),
             ),
           if (products.isEmpty)
-            const SliverFillRemaining(
+            SliverFillRemaining(
               hasScrollBody: false,
               child: Center(
-                child: Text(
-                  '未找到匹配的演示商品',
-                  style: TextStyle(color: SSShopColors.textSecondary),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      query.isEmpty ? '暂无推荐商品' : '未找到匹配的商品',
+                      style: const TextStyle(color: SSShopColors.textSecondary),
+                    ),
+                    if (query.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      TextButton(
+                        onPressed: () {
+                          ref.read(ssHomeSearchQueryProvider.notifier).state =
+                              '';
+                          _searchController.clear();
+                        },
+                        child: const Text('清除搜索'),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             )
@@ -201,17 +271,28 @@ class _HomeHeader extends ConsumerWidget {
 }
 
 class _PromoBanner extends StatelessWidget {
-  const _PromoBanner();
+  const _PromoBanner({this.home});
+
+  final SSShopHomeResponse? home;
 
   @override
   Widget build(BuildContext context) {
+    final banner =
+        home?.banners.isNotEmpty == true ? home!.banners.first : null;
+    final title = banner?.title ?? '暖冬焕新季';
+    final subtitle = banner?.subtitle ?? '满299减50 · 演示活动文案';
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('演示活动：未连接真实营销活动')),
+            SnackBar(
+              content: Text(
+                banner?.isDemo == false ? '活动详情暂未接入' : '演示活动：未连接真实营销活动',
+              ),
+            ),
           );
         },
         child: Container(
@@ -231,22 +312,22 @@ class _PromoBanner extends StatelessWidget {
           ),
           padding: const EdgeInsets.all(20),
           alignment: Alignment.centerLeft,
-          child: const Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                '暖冬焕新季',
-                style: TextStyle(
+                title,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 6),
+              const SizedBox(height: 6),
               Text(
-                '满299减50 · 演示活动文案',
-                style: TextStyle(color: Colors.white70, fontSize: 12),
+                subtitle,
+                style: const TextStyle(color: Colors.white70, fontSize: 12),
               ),
             ],
           ),
@@ -257,9 +338,11 @@ class _PromoBanner extends StatelessWidget {
 }
 
 class _QuickCategoryGrid extends ConsumerWidget {
-  const _QuickCategoryGrid();
+  const _QuickCategoryGrid({this.home});
 
-  static const _items = [
+  final SSShopHomeResponse? home;
+
+  static const _mockItems = [
     ('数码', Icons.phone_iphone, Color(0xFFE3F2FD)),
     ('服饰', Icons.checkroom, Color(0xFFFCE4EC)),
     ('生鲜', Icons.restaurant, Color(0xFFE8F5E9)),
@@ -272,8 +355,24 @@ class _QuickCategoryGrid extends ConsumerWidget {
     ('更多', Icons.more_horiz, Color(0xFFE8EAF6)),
   ];
 
+  static const _iconForLabel = <String, IconData>{
+    '数码': Icons.phone_iphone,
+    '服饰': Icons.checkroom,
+    '生鲜': Icons.restaurant,
+    '家居': Icons.weekend_outlined,
+    '美妆': Icons.brush_outlined,
+    '运动': Icons.sports_soccer,
+    '母婴': Icons.child_care,
+    '图书': Icons.menu_book_outlined,
+    '礼品': Icons.card_giftcard,
+    '更多': Icons.more_horiz,
+  };
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final quick = home?.quickCategories;
+    final useApi = quick != null && quick.isNotEmpty;
+
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
@@ -293,44 +392,75 @@ class _QuickCategoryGrid extends ConsumerWidget {
         physics: const NeverScrollableScrollPhysics(),
         mainAxisSpacing: 12,
         crossAxisSpacing: 4,
-        children: _items.map((e) {
-          final label = e.$1;
-          return Semantics(
-            label: '品类-$label',
-            button: true,
-            child: InkWell(
-              onTap: () {
-                final l1 = ssHomeQuickCategoryL1Id(label);
-                if (l1 != null) {
-                  ssNavigateToCategoryTab(context, ref, l1CategoryId: l1);
-                } else {
-                  ssNavigateToCategoryTabDefault(context);
-                }
-              },
-              child: Column(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: e.$3,
-                      borderRadius: BorderRadius.circular(10),
+        children: (useApi
+                ? quick.map(
+                    (e) => _QuickCell(label: e.label, l1Id: e.categoryL1Id),
+                  )
+                : _mockItems.map(
+                    (e) => _QuickCell(
+                      label: e.$1,
+                      l1Id: ssHomeQuickCategoryL1Id(e.$1),
+                      icon: e.$2,
+                      tint: e.$3,
                     ),
-                    child: Icon(e.$2, size: 22, color: SSShopColors.primary),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: SSShopColors.textSecondary,
-                    ),
-                  ),
-                ],
+                  ))
+            .toList(),
+      ),
+    );
+  }
+}
+
+class _QuickCell extends ConsumerWidget {
+  const _QuickCell({
+    required this.label,
+    this.l1Id,
+    this.icon,
+    this.tint,
+  });
+
+  final String label;
+  final String? l1Id;
+  final IconData? icon;
+  final Color? tint;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final resolvedIcon =
+        icon ?? _QuickCategoryGrid._iconForLabel[label] ?? Icons.category;
+    final resolvedTint = tint ?? SSShopColors.primaryLight;
+
+    return Semantics(
+      label: '品类-$label',
+      button: true,
+      child: InkWell(
+        onTap: () {
+          if (l1Id != null && l1Id!.isNotEmpty) {
+            ssNavigateToCategoryTab(context, ref, l1CategoryId: l1Id!);
+          } else {
+            ssNavigateToCategoryTabDefault(context);
+          }
+        },
+        child: Column(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: resolvedTint,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(resolvedIcon, size: 22, color: SSShopColors.primary),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11,
+                color: SSShopColors.textSecondary,
               ),
             ),
-          );
-        }).toList(),
+          ],
+        ),
       ),
     );
   }
