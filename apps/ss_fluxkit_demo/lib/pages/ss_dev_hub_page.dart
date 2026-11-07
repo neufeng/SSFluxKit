@@ -5,39 +5,26 @@ import 'package:ss_core/ss_core.dart';
 
 import '../auth/ss_auth_controller.dart';
 
-class SSHomePage extends ConsumerWidget {
-  const SSHomePage({super.key});
+/// 原 SSFluxKit 框架 Demo 入口（从「我的」进入）。
+class SSDevHubPage extends ConsumerWidget {
+  const SSDevHubPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final config = SSEnv.config;
     final auth = ref.watch(ssAuthControllerProvider);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('SSFluxKit Demo'),
-        actions: [
-          if (!config.useMock && auth.isAuthenticated)
-            IconButton(
-              tooltip: '退出登录',
-              onPressed: () async {
-                await ref.read(ssAuthControllerProvider.notifier).logout();
-                if (context.mounted) {
-                  context.go('/login');
-                }
-              },
-              icon: const Icon(Icons.logout),
-            ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('SSFluxKit 框架演示')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Text(
-            '通用 Flutter 框架 — 已对接 SSFluxServer `/api/v1`（或使用 Mock）。',
+            '通用 Flutter 框架 — 可对接 SSFluxServer `/api/v1`（或 Mock）。',
             style: Theme.of(context).textTheme.bodyLarge,
           ),
           const SizedBox(height: 8),
-          Text('API: ${config.apiBaseUrl}', style: Theme.of(context).textTheme.bodySmall),
+          Text('API: ${config.apiBaseUrl}',
+              style: Theme.of(context).textTheme.bodySmall),
           Text(
             'Mock: ${config.useMock ? "开启 (SS_USE_MOCK)" : "关闭"}',
             style: Theme.of(context).textTheme.bodySmall,
@@ -56,7 +43,7 @@ class SSHomePage extends ConsumerWidget {
               title: const Text('Feed 列表'),
               subtitle: const Text('游标分页、详情'),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/feed'),
+              onTap: () => context.push('/dev/feed'),
             ),
           ),
           Card(
@@ -65,9 +52,17 @@ class SSHomePage extends ConsumerWidget {
               title: const Text('Media 演示'),
               subtitle: const Text('示例播放 + 真实 API 上传（需登录）'),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/media'),
+              onTap: () => context.push('/dev/media'),
             ),
           ),
+          if (!config.useMock)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.login),
+                title: const Text('登录'),
+                onTap: () => context.push('/login'),
+              ),
+            ),
         ],
       ),
     );

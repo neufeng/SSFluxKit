@@ -53,13 +53,27 @@ Tab 高度 **56px**，图标 **22px**，文案 **11px**；选中态使用品牌�
 - `tab-home.png` / `tab-category.png` / `tab-cart.png` / `tab-profile.png`  
 - `tab-cart-empty.png` — 购物车空态补充稿  
 
-## 下一阶段（实现）环境提示
+## Phase 2 实现（Flutter）
 
-- **Flutter stable**（SDK ^3.5，推荐与 `pubspec.lock` 一致的 3.47+）、**Melos 8.x**。  
-- **Android / Web / Linux 桌面**：可在本类 Linux Cloud 环境完成大部分 UI 开发与 `flutter test`。  
-- **iOS 模拟器与真机构建**：需 **macOS + Xcode**（本 Linux 环境不可代填 Apple 签名）。  
-- 音视频等与电商无关的 Demo 路由可保留在 Shell 外或「更多」中，本设计未展开。
+代码路径：`apps/ss_fluxkit_demo/lib/ecommerce/`。启动：
 
----
+```bash
+cd apps/ss_fluxkit_demo
+flutter run -d chrome --dart-define=SS_USE_MOCK=true
+```
 
-分支：`cursor/ecommerce-ui-design-6bca`（仅设计资产，不修改 `apps/`、`packages/` 业务实现）。
+实现 Web 截图：`apps/ss_fluxkit_demo/tool/capture_web_screenshots.mjs` → `/opt/cursor/artifacts/ssfluxkit-ecommerce-impl/`。
+
+### 与设计稿已知差异
+
+| 项 | 说明 |
+| --- | --- |
+| 底部导航 | Material 3 `NavigationBar` |
+| 首页快捷品类 | 静态展示，未跳转分类 Tab |
+| 状态栏 | 无 HTML 仿真 iOS 栏，使用 `SafeArea` |
+| 购物车编辑 | SnackBar 提示；删行可用数量减至 0 |
+
+### 环境提示
+
+- **Flutter stable**（SDK ^3.5）、**Melos 8.x**；**iOS** 需 macOS + Xcode。  
+- 框架 Feed / Media：`我的 → 常用服务` → `/dev/*`。
